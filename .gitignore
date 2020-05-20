@@ -1,0 +1,10 @@
+src/swagger.json
+src/routes.ts
+
+node_modules/
+build/
+.vscode
+
+yarn.lock
+package-lock.json
+src/hafas/hafas-client-types.ts

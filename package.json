@@ -1,0 +1,21 @@
+{
+  "name": "hafas-client-rest-api",
+  "version": "0.0.1",
+  "main": "build/server.js",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "hafas-client": "^5.5.0",
+    "swagger-ui-express": "^4.1.4",
+    "tsoa": "^3.0.8"
+  },
+  "devDependencies": {
+    "@types/hafas-client": "^5.5.0",
+    "@types/body-parser": "^1.19.0",
+    "@types/express": "^4.17.6",
+    "@types/node": "^14.0.1",
+    "@types/swagger-ui-express": "^4.1.2",
+    "typescript": "^3.9.2"
+  }
+}

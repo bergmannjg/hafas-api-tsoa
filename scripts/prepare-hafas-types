@@ -1,0 +1,15 @@
+#!/bin/bash
+# Tsoa can't currently get interfaces from node_modules
+# cp files and export interfaces
+
+INDEXFILE='node_modules/@types/hafas-client/index.d.ts'
+LOCALFILE='src/hafas/hafas-client-types.ts'
+
+echo "// This file is generated with '$0'. Do not modify." > $LOCALFILE
+
+sed '/^\/\//d
+    /^export/d
+    /^declare/d
+    /^}/d
+    s/interface/export interface/
+    s/ReadonlyArray/Array/' $INDEXFILE >> $LOCALFILE
