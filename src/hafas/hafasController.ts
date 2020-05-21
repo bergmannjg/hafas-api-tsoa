@@ -5,6 +5,8 @@ import { Stop, Location, Station } from './hafas-client-types';
 
 @Route("hafas")
 export class HafasController extends Controller {
+  private clientFactory() { return createClient(dbProfile, 'client'); }
+
   /**
    * Retrieves locations or stops
    * @param name name of station
@@ -30,7 +32,7 @@ export class HafasController extends Controller {
     @Query() language = 'en',
 
   ): Promise<Array<Station | Stop | Location>> {
-    const client = createClient(dbProfile, 'client');
+    const client = this.clientFactory();
     return await client.locations(name, { fuzzy, results, stops, addresses, poi, linesOfStops, language }) as Array<Station | Stop | Location>;
   }
 }
