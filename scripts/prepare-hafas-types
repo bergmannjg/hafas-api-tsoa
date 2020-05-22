@@ -2,7 +2,12 @@
 # Tsoa can't currently get interfaces from node_modules
 # cp files and export interfaces
 
-INDEXFILE='node_modules/@types/hafas-client/index.d.ts'
+if [  ! -d "./scripts" ]; then
+    echo "please run from project directory"
+    exit 1
+fi
+
+INDEXFILE='./types/hafas-client/index.d.ts'
 LOCALFILE='src/hafas/hafas-client-types.ts'
 
 echo "// This file is generated with '$0'. Do not modify." > $LOCALFILE

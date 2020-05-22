@@ -61,6 +61,7 @@ declare namespace createClient {
         station?: Station;
         location?: Location;
         products: Products;
+        lines?: ReadonlyArray<Line>;
         isMeta?: boolean;
     }
 
@@ -238,32 +239,101 @@ declare namespace createClient {
     }
 
     interface JourneysOptions {
+        /** departure date, undefined corresponds to Date.Now
+            @default undefined 
+         */
         departure?: Date;
+        /** arrival
+            @default undefined 
+         */
         arrival?: Date;
-        results?: number; // number of journeys
-        via?: string; // let journeys pass this station
-        stopovers?: boolean; // return stations on the way?
-        transfers?: number; // Maximum nr of transfers. Default: Let HAFAS decide.
-        transferTime?: number; // minimum time for a single transfer in minutes
-        accessibility?: string; // 'none', 'partial' or 'complete'
-        bike?: boolean; // only bike-friendly journeys
+        /** how many search results?
+            @default 3
+         */
+        results?: number;
+        /**  let journeys pass this station
+            @default undefined
+         */
+        via?: string;
+        /** return stations on the way?
+            @default false
+         */
+        stopovers?: boolean;
+        /** Maximum nr of transfers. Default: Let HAFAS decide. 
+            @default 10
+         */
+        transfers?: number;
+        /** minimum time for a single transfer in minutes 
+            @default 10
+         */
+        transferTime?: number;
+        /** 'none', 'partial' or 'complete' 
+            @default none
+         */
+        accessibility?: string; //
+        /** only bike-friendly journeys 
+            @default false
+         */
+        bike?: boolean;
         products?: Products;
-        tickets?: boolean; // return tickets? only available with some profiles
-        polylines?: boolean; // return a shape for each leg?
-        remarks?: boolean; // parse & expose hints & warnings?
-        walkingSpeed?: string; // 'slow', 'normal', 'fast'
+        /** return tickets? only available with some profiles 
+            @default false
+         */
+        tickets?: boolean;
+        /** return a shape for each leg? 
+            @default false
+         */
+        polylines?: boolean;
+        /** parse & expose hints & warnings? 
+            @default false
+         */
+        remarks?: boolean;
+        /** 'slow', 'normal', 'fast' 
+            @default slow
+         */
+        walkingSpeed?: string;
+        /**  
+            @default false
+         */
         startWithWalking?: boolean;
-        language?: string; // language to get results in
-        scheduledDays?: boolean; // parse which days each journey is valid on
+        /** language to get results in 
+            @default en
+         */
+        language?: string;
+        /** parse which days each journey is valid on
+            @default false
+         */
+        scheduledDays?: boolean;
     }
 
     interface LocationsOptions {
-        fuzzy?: boolean; // find only exact matches?
-        results?: number; // how many search results?
-        stops?: boolean; // return stops/stations?
+        /** find only exact matches? 
+            @default true 
+         */
+        fuzzy?: boolean;
+        /** how many search results?
+            @default 10
+         */
+        results?: number;
+        /** return stops/stations? 
+         *  @default true 
+        */
+        stops?: boolean;
+        /** return addresses
+         *  @default false 
+        */
         addresses?: boolean;
-        poi?: boolean; // points of interest
-        linesOfStops?: boolean; // parse & expose lines at each stop/station?
+        /** points of interest
+         * @default true
+        */
+        poi?: boolean;
+        /** parse & expose lines at each stop/station? 
+         * @default false
+        */
+        linesOfStops?: boolean;
+        /** Language of the results
+         *  @default en
+        */
         language?: string;
     }
 
@@ -280,14 +350,41 @@ declare namespace createClient {
     }
 
     interface DeparturesArrivalsOptions {
+        /** departure date, undefined corresponds to Date.Now
+            @default undefined 
+         */
         when?: Date;
-        direction?: string; // only show departures heading to this station
-        duration?: number; // show departures for the next n minutes
-        results?: number; // max. number of results; `null` means "whatever HAFAS wants"
-        linesOfStops?: boolean; // parse & expose lines at the stop/station?
-        remarks?: boolean; // parse & expose hints & warnings?
-        stopovers?: boolean; // fetch & parse previous/next stopovers?
-        includeRelatedStations?: boolean; // departures at related stations
+        /** only show departures heading to this station
+           @default undefined 
+        */
+        direction?: string;
+        /** show departures for the next n minutes
+           @default 120 
+        */
+        duration?: number;
+         /**  max. number of results; `null` means "whatever HAFAS wants"
+           @default 10 
+        */
+        results?: number;
+         /** parse & expose lines at the stop/station?
+           @default false 
+        */
+        linesOfStops?: boolean;
+         /** parse & expose hints & warnings?
+           @default false 
+        */
+        remarks?: boolean;
+         /** fetch & parse previous/next stopovers?
+           @default false 
+        */
+        stopovers?: boolean;
+         /** departures at related stations
+           @default false 
+        */
+        includeRelatedStations?: boolean;
+         /** language
+           @default en 
+        */
         language?: string;
     }
 
@@ -316,14 +413,31 @@ declare namespace createClient {
     }
 
     interface HafasClient {
+        /**
+         * Retrieves journeys
+         * @param from uid of station
+         * @param to uid of station
+         */
         journeys: (from: string | Station | Location, to: string | Station | Location, options: JourneysOptions | undefined) => Promise<Journeys>;
         refreshJourney: (refreshToken: string, options: RefreshJourneyOptions | undefined) => Promise<Journey>;
         trip: (id: string, name: string, options: TripOptions | undefined) => Promise<Trip>;
+        /**
+         * Retrieves departures
+         * @param station uid of station
+         */
         departures: (station: string | Station, options: DeparturesArrivalsOptions | undefined) => Promise<ReadonlyArray<Alternative>>;
         arrivals: (station: string | Station, options: DeparturesArrivalsOptions | undefined) => Promise<ReadonlyArray<Alternative>>;
+        /**
+         * Retrieves locations or stops
+         * @param name name of station
+         * @param options options for search
+         */
         locations: (from: string, options: LocationsOptions | undefined) => Promise<ReadonlyArray<Station | Stop | Location>>;
         stop: (id: string, options: StopOptions | undefined) => Promise<Stop>;
-        nearBy: (location: Location, options: NearByOptions | undefined) => Promise<Stop>;
+        /**
+        * Retrieves nearby stops
+        */
+        nearby: (location: Location, options: NearByOptions | undefined) => Promise<ReadonlyArray<Stop>>;
         reachableFrom: (address: Location, options: ReachableFromOptions | undefined) => Promise<ReadonlyArray<Duration>>;
     }
 }
