@@ -140,7 +140,7 @@ function extract(file: string, methodName: string, excludes: string[], maxdepth:
         const signatures = callType.getCallSignatures();
         if (signatures.length === 1) {
             const signature = signatures[0];
-            methodReturnType = checker.typeToString((signature.getReturnType()));
+            methodReturnType = checker.typeToString(signature.getReturnType(), undefined, ts.TypeFormatFlags.WriteArrayAsGenericType);
             for (const parameter of signature.parameters) {
                 const jsParamTags = tags.filter(t => t.name === "param" && t.text && t.text.startsWith(parameter.getName()));
                 collectParameter(parameter, 1, jsParamTags.length === 1 ? jsParamTags[0] : undefined);
@@ -150,22 +150,15 @@ function extract(file: string, methodName: string, excludes: string[], maxdepth:
         return new Method(methodName, methodReturnType, methodComment, parameters);
     }
 
-    // tsoa cannot handle readonly typeoperator and parenthesized type, do some text changes, todo: using types
+    // tsoa cannot handle readonly typeoperator
     function adjustReturnType(methid: Method) {
         // strip Promise
         method.returnType = method.returnType.replace("Promise<", "");
         method.returnType = method.returnType.substr(0, method.returnType.length - 1);
 
-        method.returnType = method.returnType.replace("readonly ", "");
-        if (method.returnType.includes("(") && method.returnType.includes("[]")) {
-            method.returnType = method.returnType.replace("[]", "");
-            method.returnType = method.returnType.replace("(", "");
-            method.returnType = method.returnType.replace(")", "");
-            method.returnType = "Array<" + method.returnType + ">";
-            method.aliasReturnType = " as " + method.returnType;
-        } else {
-            method.aliasReturnType = " as " + method.returnType;
-        }
+        method.returnType = method.returnType.replace("ReadonlyArray", "Array");
+        method.aliasReturnType = " as " + method.returnType;
+
         // add Promise again
         method.returnType = "Promise<" + method.returnType + ">";
     }

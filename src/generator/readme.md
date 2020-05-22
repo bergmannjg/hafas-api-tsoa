@@ -10,7 +10,7 @@ node build/generator/index.js --file <file> --method <method> [-x <exclude prope
 
 The method should return a Promise. 
 
-If a parameter of the method has an interface type, the interface properties are transfered to query parameters of the rest api method.
+If a parameter of the method has an interface type, the interface properties are transferred to query parameters of the rest api method.
 
 ## Example
 
@@ -22,7 +22,7 @@ node build/generator/index.js --file ./types/hafas-client/index.d.ts --method lo
 
 generates the following controller method for the **locations** method in [HafasClient](../../types/hafas-client/index.d.ts) api.
 
-The properties of type **LocationsOptions** are transfered to query parameters.
+The properties of type **LocationsOptions** are transferred to query parameters.
 
 ```js
   /**
