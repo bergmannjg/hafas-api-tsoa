@@ -6,6 +6,6 @@ if [  ! -d "./scripts" ]; then
 fi
 
 node build/generator/index.js --file ./types/hafas-client/index.d.ts --method locations
-node build/generator/index.js --file ./types/hafas-client/index.d.ts --method journeys -x JourneysOptions.arrival JourneysOptions.products
+node build/generator/index.js --file ./types/hafas-client/index.d.ts --method journeys -x JourneysOptions.arrival JourneysOptions.products JourneysOptions.departure JourneysOptions.laterThan
 node build/generator/index.js --file ./types/hafas-client/index.d.ts --method departures
 node build/generator/index.js --file ./types/hafas-client/index.d.ts --method nearby -x Location.type Location.id Location.name Location.poi Location.address Location.altitude

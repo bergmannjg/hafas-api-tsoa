@@ -1,4 +1,4 @@
-// Type definitions for hafas-client 5.5
+// Type definitions for hafas-client 5.6
 // Project: https://github.com/public-transport/hafas-client
 // Definitions by: Jürgen Bergmann <https://github.com/bergmannjg>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
@@ -35,12 +35,23 @@ declare namespace createClient {
         altitude?: number;
     }
 
-    // Each public transportation network exposes its products as boolean properties.
-    // They are modelled as TypeScript boolean index types.
-    // The products may be similar to Extended GTFS Route Types (https://developers.google.com/transit/gtfs/reference/extended-route-types)
-    // and to Netex Vehicle types (https://www.vdv.de/vdv-462-netex-recommendation-v00-22-english.pdfx)
+    /** Each public transportation network exposes its products as boolean properties. See {@link ProductType} */
     interface Products {
         [product: string]: boolean;
+    }
+
+    interface Facilities {
+        [product: string]: string | boolean;
+    }
+
+    interface ReisezentrumOpeningHours {
+        Mo?: string;
+        Di?: string;
+        Mi?: string;
+        Do?: string;
+        Fr?: string;
+        Sa?: string;
+        So?: string;
     }
 
     interface Station {
@@ -51,7 +62,10 @@ declare namespace createClient {
         location?: Location;
         products?: Products;
         isMeta?: boolean;
-        regions?: ReadonlyArray<string>; // region ids
+        /** region ids */
+        regions?: ReadonlyArray<string>;
+        facilities?: Facilities;
+        reisezentrumOpeningHours?: ReisezentrumOpeningHours;
     }
 
     interface Stop {
@@ -63,13 +77,15 @@ declare namespace createClient {
         products: Products;
         lines?: ReadonlyArray<Line>;
         isMeta?: boolean;
+        reisezentrumOpeningHours?: ReisezentrumOpeningHours;
     }
 
     interface Region {
         type: 'region';
         id: string;
         name: string;
-        stations: ReadonlyArray<string>; // station ids
+        /** station ids */
+        stations: ReadonlyArray<string>;
     }
 
     interface Line {
@@ -82,7 +98,8 @@ declare namespace createClient {
         product?: string;
         public?: boolean;
         mode: 'train' | 'bus' | 'watercraft' | 'taxi' | 'gondola' | 'aircraft' | 'car' | 'bicycle' | 'walking';
-        routes?: ReadonlyArray<string>; // routes ids
+        /** routes ids */
+        routes?: ReadonlyArray<string>;
         operator?: Operator;
         express?: boolean;
         metro?: boolean;
@@ -96,7 +113,8 @@ declare namespace createClient {
         id: string;
         line: string;
         mode: 'train' | 'bus' | 'watercraft' | 'taxi' | 'gondola' | 'aircraft' | 'car' | 'bicycle' | 'walking';
-        stops: ReadonlyArray<string>; // stop ids
+        /** stop ids */
+        stops: ReadonlyArray<string>;
     }
 
     interface Cycle {
@@ -116,7 +134,8 @@ declare namespace createClient {
         route: string;
         mode: 'train' | 'bus' | 'watercraft' | 'taxi' | 'gondola' | 'aircraft' | 'car' | 'bicycle' | 'walking';
         sequence: ReadonlyArray<ArrivalDeparture>;
-        starts: ReadonlyArray<string>; // array of Unix timestamps
+        /** array of Unix timestamps */
+        starts: ReadonlyArray<string>;
     }
 
     interface Operator {
@@ -133,14 +152,32 @@ declare namespace createClient {
         tripId?: string;
     }
 
+    interface Geometry {
+        type: 'point';
+        coordinates: number[];
+    }
+
+    interface Feature {
+        type: 'Feature';
+        properties?: Station | Stop;
+        geometry: Geometry;
+    }
+
+    interface FeatureCollection {
+        type: 'FeatureCollection';
+        features: ReadonlyArray<Feature>;
+    }
+
     interface StopOver {
         stop: Station | Stop;
-        departure?: string; // null, if last stopOver of trip
+        /** null, if last stopOver of trip */
+        departure?: string;
         departureDelay?: number;
         plannedDeparture?: string;
         departurePlatform?: string;
         plannedDeparturePlatform?: string;
-        arrival?: string; // null, if first stopOver of trip
+        /** null, if first stopOver of trip */
+        arrival?: string;
         arrivalDelay?: number;
         plannedArrival?: string;
         arrivalPlatform?: string;
@@ -167,6 +204,7 @@ declare namespace createClient {
         line?: Line;
         direction?: string;
         reachable?: boolean;
+        polyline?: FeatureCollection;
     }
 
     interface Price {
@@ -218,6 +256,11 @@ declare namespace createClient {
         transfer?: boolean;
         cycle?: Cycle;
         alternatives?: ReadonlyArray<Alternative>;
+        polyline?: FeatureCollection;
+    }
+
+    interface ScheduledDays {
+        [day: string]: boolean;
     }
 
     interface Journey {
@@ -227,9 +270,12 @@ declare namespace createClient {
         remarks?: ReadonlyArray<Hint>;
         price?: Price;
         cycle?: Cycle;
+        scheduledDays?: ScheduledDays;
     }
 
     interface Journeys {
+        earlierRef?: string;
+        laterRef?: string;
         journeys: ReadonlyArray<Journey>;
     }
 
@@ -243,10 +289,18 @@ declare namespace createClient {
             @default undefined 
          */
         departure?: Date;
-        /** arrival
+        /** arrival date, departure and arrival are mutually exclusive.
             @default undefined 
          */
         arrival?: Date;
+        /** earlierThan, use {@link Journeys#earlierRef}, earlierThan and departure/arrival are mutually exclusive.
+             @default undefined 
+         */
+        earlierThan?: string;
+        /** laterThan, use {@link Journeys#laterRef}, laterThan and departure/arrival are mutually exclusive.
+            @default undefined 
+         */
+        laterThan?: string;
         /** how many search results?
             @default 3
          */
@@ -270,7 +324,7 @@ declare namespace createClient {
         /** 'none', 'partial' or 'complete' 
             @default none
          */
-        accessibility?: string; //
+        accessibility?: string;
         /** only bike-friendly journeys 
             @default false
          */
@@ -284,6 +338,10 @@ declare namespace createClient {
             @default false
          */
         polylines?: boolean;
+        /** parse & expose sub-stops of stations? */
+        subStops?: boolean;
+        /** parse & expose entrances of stops/stations? */
+        entrances?: boolean;
         /** parse & expose hints & warnings? 
             @default false
          */
@@ -338,14 +396,26 @@ declare namespace createClient {
     }
 
     interface TripOptions {
-        stopovers?: boolean; // return stations on the way?
-        polyline?: boolean; // return a shape for the trip?
-        remarks?: boolean; // parse & expose hints & warnings?
+        /** return stations on the way? */
+        stopovers?: boolean;
+        /** return a shape for the trip? */
+        polyline?: boolean;
+        /** parse & expose sub-stops of stations? */
+        subStops?: boolean;
+        /** parse & expose entrances of stops/stations? */
+        entrances?: boolean;
+        /**  parse & expose hints & warnings? */
+        remarks?: boolean;
         language?: string;
     }
 
     interface StopOptions {
-        linesOfStops?: boolean; // parse & expose lines at the stop/station?
+        /** parse & expose lines at the stop/station? */
+        linesOfStops?: boolean;
+        /** parse & expose sub-stops of stations? */
+        subStops?: boolean;
+        /** parse & expose entrances of stops/stations? */
+        entrances?: boolean;
         language?: string;
     }
 
@@ -362,54 +432,81 @@ declare namespace createClient {
            @default 120 
         */
         duration?: number;
-         /**  max. number of results; `null` means "whatever HAFAS wants"
-           @default 10 
-        */
+        /**  max. number of results; `null` means "whatever HAFAS wants"
+          @default 10 
+       */
         results?: number;
-         /** parse & expose lines at the stop/station?
-           @default false 
-        */
+        /** parse & expose sub-stops of stations? */
+        subStops?: boolean;
+        /** parse & expose entrances of stops/stations? */
+        entrances?: boolean;
+        /** parse & expose lines at the stop/station?
+          @default false 
+       */
         linesOfStops?: boolean;
-         /** parse & expose hints & warnings?
-           @default false 
-        */
+        /** parse & expose hints & warnings?
+          @default false 
+       */
         remarks?: boolean;
-         /** fetch & parse previous/next stopovers?
-           @default false 
-        */
+        /** fetch & parse previous/next stopovers?
+          @default false 
+       */
         stopovers?: boolean;
-         /** departures at related stations
-           @default false 
-        */
+        /** departures at related stations
+          @default false 
+       */
         includeRelatedStations?: boolean;
-         /** language
-           @default en 
-        */
+        /** language
+          @default en 
+       */
         language?: string;
     }
 
     interface RefreshJourneyOptions {
-        stopovers?: boolean; // return stations on the way?
-        polylines?: boolean; // return a shape for each leg?
-        tickets?: boolean; // return tickets? only available with some profiles
-        remarks?: boolean; // parse & expose hints & warnings?
+        /** return stations on the way? */
+        stopovers?: boolean;
+        /** return a shape for each leg? */
+        polylines?: boolean;
+        /** return tickets? only available with some profiles */
+        tickets?: boolean;
+        /** parse & expose sub-stops of stations? */
+        subStops?: boolean;
+        /** parse & expose entrances of stops/stations? */
+        entrances?: boolean;
+        /** parse & expose hints & warnings? */
+        remarks?: boolean;
         language?: string;
     }
 
     interface NearByOptions {
-        results?: number; // maximum number of results
-        distance?: number; // maximum walking distance in meters
-        poi?: boolean; // return points of interest?
-        stops?: boolean; // return stops/stations?
-        linesOfStops?: boolean; // parse & expose lines at each stop/station?
+        /** maximum number of results */
+        results?: number;
+        /** maximum walking distance in meters */
+        distance?: number;
+        /** return points of interest? */
+        poi?: boolean;
+        /** return stops/stations? */
+        stops?: boolean;
+        /** parse & expose sub-stops of stations? */
+        subStops?: boolean;
+        /** parse & expose entrances of stops/stations? */
+        entrances?: boolean;
+        /** parse & expose lines at each stop/station? */
+        linesOfStops?: boolean;
         language?: string;
     }
 
     interface ReachableFromOptions {
         when?: Date;
-        maxTransfers?: number; // maximum of 5 transfers
-        maxDuration?: number; // maximum travel duration in minutes, pass `null` for infinite
+        /** maximum of transfers */
+        maxTransfers?: number;
+        /** maximum travel duration in minutes, pass `null` for infinite */
+        maxDuration?: number;
         products?: Products;
+        /** parse & expose sub-stops of stations? */
+        subStops?: boolean;
+        /** parse & expose entrances of stops/stations? */
+        entrances?: boolean;
     }
 
     interface HafasClient {
