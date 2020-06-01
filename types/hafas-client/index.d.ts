@@ -68,6 +68,11 @@ declare namespace createClient {
         reisezentrumOpeningHours?: ReisezentrumOpeningHours;
     }
 
+    interface IDs {
+        /** DELFI Haltestellen ID */
+        dhid?: string;
+    }
+
     interface Stop {
         type: 'stop';
         id: string;
@@ -78,6 +83,8 @@ declare namespace createClient {
         lines?: ReadonlyArray<Line>;
         isMeta?: boolean;
         reisezentrumOpeningHours?: ReisezentrumOpeningHours;
+        ids?: IDs;
+        loadFactor?: string;
     }
 
     interface Region {
