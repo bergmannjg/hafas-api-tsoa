@@ -225,6 +225,7 @@ declare namespace createClient {
         plannedPlatform?: string;
         remarks?: ReadonlyArray<Hint>;
         cancelled?: boolean;
+        loadFactor?: string;
     }
 
     interface Leg {
@@ -257,6 +258,7 @@ declare namespace createClient {
         cycle?: Cycle;
         alternatives?: ReadonlyArray<Alternative>;
         polyline?: FeatureCollection;
+        remarks?: ReadonlyArray<Hint>;
     }
 
     interface ScheduledDays {
