@@ -1,30 +1,24 @@
-// Type definitions for hafas-client 5.6
-// Project: https://github.com/public-transport/hafas-client
-// Definitions by: Jürgen Bergmann <https://github.com/bergmannjg>
-// Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
+// This file is generated with './scripts/prepare-hafas-types'. Do not modify.
 
-export = createClient;
 
-declare function createClient(profile: createClient.Profile, userAgent: string): createClient.HafasClient;
 
-declare namespace createClient {
-    interface ProductType {
+    export interface ProductType {
         id: string;
         mode: string;
         name: string;
         short: string;
     }
 
-    interface Profile {
+    export interface Profile {
         locale: string;
-        products: ReadonlyArray<ProductType>;
+        products: Array<ProductType>;
         trip?: boolean;
         radar?: boolean;
         refreshJourney?: boolean;
         reachableFrom?: boolean;
     }
 
-    interface Location {
+    export interface Location {
         type: 'location';
         id?: string;
         name?: string;
@@ -36,15 +30,15 @@ declare namespace createClient {
     }
 
     /** Each public transportation network exposes its products as boolean properties. See {@link ProductType} */
-    interface Products {
+    export interface Products {
         [product: string]: boolean;
     }
 
-    interface Facilities {
+    export interface Facilities {
         [product: string]: string | boolean;
     }
 
-    interface ReisezentrumOpeningHours {
+    export interface ReisezentrumOpeningHours {
         Mo?: string;
         Di?: string;
         Mi?: string;
@@ -54,7 +48,7 @@ declare namespace createClient {
         So?: string;
     }
 
-    interface Station {
+    export interface Station {
         type: 'station';
         id: string;
         name: string;
@@ -63,39 +57,39 @@ declare namespace createClient {
         products?: Products;
         isMeta?: boolean;
         /** region ids */
-        regions?: ReadonlyArray<string>;
+        regions?: Array<string>;
         facilities?: Facilities;
         reisezentrumOpeningHours?: ReisezentrumOpeningHours;
     }
 
-    interface IDs {
+    export interface IDs {
         /** DELFI Haltestellen ID */
         dhid?: string;
     }
 
-    interface Stop {
+    export interface Stop {
         type: 'stop';
         id: string;
         name: string;
         station?: Station;
         location?: Location;
         products: Products;
-        lines?: ReadonlyArray<Line>;
+        lines?: Array<Line>;
         isMeta?: boolean;
         reisezentrumOpeningHours?: ReisezentrumOpeningHours;
         ids?: IDs;
         loadFactor?: string;
     }
 
-    interface Region {
+    export interface Region {
         type: 'region';
         id: string;
         name: string;
         /** station ids */
-        stations: ReadonlyArray<string>;
+        stations: Array<string>;
     }
 
-    interface Line {
+    export interface Line {
         type: 'line';
         id?: string;
         name?: string;
@@ -106,7 +100,7 @@ declare namespace createClient {
         public?: boolean;
         mode: 'train' | 'bus' | 'watercraft' | 'taxi' | 'gondola' | 'aircraft' | 'car' | 'bicycle' | 'walking';
         /** routes ids */
-        routes?: ReadonlyArray<string>;
+        routes?: Array<string>;
         operator?: Operator;
         express?: boolean;
         metro?: boolean;
@@ -115,43 +109,43 @@ declare namespace createClient {
         symbol?: string;
     }
 
-    interface Route {
+    export interface Route {
         type: 'route';
         id: string;
         line: string;
         mode: 'train' | 'bus' | 'watercraft' | 'taxi' | 'gondola' | 'aircraft' | 'car' | 'bicycle' | 'walking';
         /** stop ids */
-        stops: ReadonlyArray<string>;
+        stops: Array<string>;
     }
 
-    interface Cycle {
+    export interface Cycle {
         min?: number;
         max?: number;
         nr?: number;
     }
 
-    interface ArrivalDeparture {
+    export interface ArrivalDeparture {
         arrival?: number;
         departure?: number;
     }
 
-    interface Schedule {
+    export interface Schedule {
         type: 'schedule';
         id: string;
         route: string;
         mode: 'train' | 'bus' | 'watercraft' | 'taxi' | 'gondola' | 'aircraft' | 'car' | 'bicycle' | 'walking';
-        sequence: ReadonlyArray<ArrivalDeparture>;
+        sequence: Array<ArrivalDeparture>;
         /** array of Unix timestamps */
-        starts: ReadonlyArray<string>;
+        starts: Array<string>;
     }
 
-    interface Operator {
+    export interface Operator {
         type: 'operator';
         id: string;
         name: string;
     }
 
-    interface Hint {
+    export interface Hint {
         type: 'hint';
         code?: string;
         summary?: string;
@@ -159,23 +153,23 @@ declare namespace createClient {
         tripId?: string;
     }
 
-    interface Geometry {
+    export interface Geometry {
         type: 'point';
         coordinates: number[];
     }
 
-    interface Feature {
+    export interface Feature {
         type: 'Feature';
         properties?: Station | Stop;
         geometry: Geometry;
     }
 
-    interface FeatureCollection {
+    export interface FeatureCollection {
         type: 'FeatureCollection';
-        features: ReadonlyArray<Feature>;
+        features: Array<Feature>;
     }
 
-    interface StopOver {
+    export interface StopOver {
         stop: Station | Stop;
         /** null, if last stopOver of trip */
         departure?: string;
@@ -189,10 +183,10 @@ declare namespace createClient {
         plannedArrival?: string;
         arrivalPlatform?: string;
         plannedArrivalPlatform?: string;
-        remarks?: ReadonlyArray<Hint>;
+        remarks?: Array<Hint>;
     }
 
-    interface Trip {
+    export interface Trip {
         id: string;
         origin: Stop;
         departure: string;
@@ -206,21 +200,21 @@ declare namespace createClient {
         plannedArrival: string;
         plannedArrivalPlatform?: string;
         arrivalDelay?: number;
-        stopovers: ReadonlyArray<StopOver>;
-        remarks?: ReadonlyArray<Hint>;
+        stopovers: Array<StopOver>;
+        remarks?: Array<Hint>;
         line?: Line;
         direction?: string;
         reachable?: boolean;
         polyline?: FeatureCollection;
     }
 
-    interface Price {
+    export interface Price {
         amount: number;
         currency: string;
         hint?: string;
     }
 
-    interface Alternative {
+    export interface Alternative {
         tripId: string;
         direction?: string;
         line?: Line;
@@ -230,12 +224,12 @@ declare namespace createClient {
         delay?: number;
         platform?: string;
         plannedPlatform?: string;
-        remarks?: ReadonlyArray<Hint>;
+        remarks?: Array<Hint>;
         cancelled?: boolean;
         loadFactor?: string;
     }
 
-    interface Leg {
+    export interface Leg {
         tripId?: string;
         origin: Station | Stop;
         destination: Station | Stop;
@@ -249,7 +243,7 @@ declare namespace createClient {
         arrivalDelay?: number;
         arrivalPlatform?: string;
         plannedArrivalPlatform?: string;
-        stopovers?: ReadonlyArray<StopOver>;
+        stopovers?: Array<StopOver>;
         schedule?: number;
         price?: Price;
         operator?: number;
@@ -263,37 +257,37 @@ declare namespace createClient {
         public?: boolean;
         transfer?: boolean;
         cycle?: Cycle;
-        alternatives?: ReadonlyArray<Alternative>;
+        alternatives?: Array<Alternative>;
         polyline?: FeatureCollection;
-        remarks?: ReadonlyArray<Hint>;
+        remarks?: Array<Hint>;
     }
 
-    interface ScheduledDays {
+    export interface ScheduledDays {
         [day: string]: boolean;
     }
 
-    interface Journey {
+    export interface Journey {
         type: 'journey';
-        legs: ReadonlyArray<Leg>;
+        legs: Array<Leg>;
         refreshToken?: string;
-        remarks?: ReadonlyArray<Hint>;
+        remarks?: Array<Hint>;
         price?: Price;
         cycle?: Cycle;
         scheduledDays?: ScheduledDays;
     }
 
-    interface Journeys {
+    export interface Journeys {
         earlierRef?: string;
         laterRef?: string;
-        journeys: ReadonlyArray<Journey>;
+        journeys: Array<Journey>;
     }
 
-    interface Duration {
+    export interface Duration {
         duration: number;
-        stations: ReadonlyArray<Station | Stop>;
+        stations: Array<Station | Stop>;
     }
 
-    interface JourneysOptions {
+    export interface JourneysOptions {
         /** departure date, undefined corresponds to Date.Now
             @default undefined 
          */
@@ -377,7 +371,7 @@ declare namespace createClient {
         scheduledDays?: boolean;
     }
 
-    interface LocationsOptions {
+    export interface LocationsOptions {
         /** find only exact matches? 
             @default true 
          */
@@ -408,7 +402,7 @@ declare namespace createClient {
         language?: string;
     }
 
-    interface TripOptions {
+    export interface TripOptions {
         /** return stations on the way?
             @default true
          */
@@ -435,7 +429,7 @@ declare namespace createClient {
         language?: string;
     }
 
-    interface StopOptions {
+    export interface StopOptions {
         /** parse & expose lines at the stop/station?
             @default false
          */
@@ -454,7 +448,7 @@ declare namespace createClient {
         language?: string;
     }
 
-    interface DeparturesArrivalsOptions {
+    export interface DeparturesArrivalsOptions {
         /** departure date, undefined corresponds to Date.Now
             @default undefined 
          */
@@ -501,7 +495,7 @@ declare namespace createClient {
         language?: string;
     }
 
-    interface RefreshJourneyOptions {
+    export interface RefreshJourneyOptions {
         /** return stations on the way?
             @default false
          */
@@ -532,7 +526,7 @@ declare namespace createClient {
         language?: string;
     }
 
-    interface NearByOptions {
+    export interface NearByOptions {
         /** maximum number of results
             @default 8 
          */
@@ -567,7 +561,7 @@ declare namespace createClient {
         language?: string;
     }
 
-    interface ReachableFromOptions {
+    export interface ReachableFromOptions {
         /** when
             @default undefined
          */
@@ -594,7 +588,7 @@ declare namespace createClient {
         entrances?: boolean;
     }
 
-    interface HafasClient {
+    export interface HafasClient {
         /**
          * Retrieves journeys
          * @param from uid of station
@@ -611,7 +605,6 @@ declare namespace createClient {
         /**
          * Refetch information about a trip
          * @param id trip id, see {@link Leg#tripId}
-         * @param name name
          * @param options options
          */
         trip: (id: string, name: string, options: TripOptions | undefined) => Promise<Trip>;
@@ -620,19 +613,19 @@ declare namespace createClient {
          * @param station uid of station
          * @param options options
          */
-        departures: (station: string | Station, options: DeparturesArrivalsOptions | undefined) => Promise<ReadonlyArray<Alternative>>;
+        departures: (station: string | Station, options: DeparturesArrivalsOptions | undefined) => Promise<Array<Alternative>>;
         /**
          * Retrieves arrivals
          * @param station uid of station
          * @param options options
          */
-        arrivals: (station: string | Station, options: DeparturesArrivalsOptions | undefined) => Promise<ReadonlyArray<Alternative>>;
+        arrivals: (station: string | Station, options: DeparturesArrivalsOptions | undefined) => Promise<Array<Alternative>>;
         /**
          * Retrieves locations or stops
          * @param name name of station
          * @param options options for search
          */
-        locations: (name: string, options: LocationsOptions | undefined) => Promise<ReadonlyArray<Station | Stop | Location>>;
+        locations: (name: string, options: LocationsOptions | undefined) => Promise<Array<Station | Stop | Location>>;
         /**
         * Retrieves information about a stop
         * @param id uid of station
@@ -644,12 +637,11 @@ declare namespace createClient {
         * @param location location
         * @param options options for search
         */
-        nearby: (location: Location, options: NearByOptions | undefined) => Promise<ReadonlyArray<Stop>>;
+        nearby: (location: Location, options: NearByOptions | undefined) => Promise<Array<Stop>>;
         /**
         * Retrieves stations reachable within a certain time from a location
         * @param address location
         * @param options options for search
         */
-        reachableFrom: (address: Location, options: ReachableFromOptions | undefined) => Promise<ReadonlyArray<Duration>>;
+        reachableFrom: (address: Location, options: ReachableFromOptions | undefined) => Promise<Array<Duration>>;
     }
-}

@@ -5,7 +5,16 @@ if [  ! -d "./scripts" ]; then
     exit 1
 fi
 
-node build/generator/index.js --file ./types/hafas-client/index.d.ts --method locations
-node build/generator/index.js --file ./types/hafas-client/index.d.ts --method journeys -x JourneysOptions.arrival JourneysOptions.products JourneysOptions.departure JourneysOptions.laterThan
-node build/generator/index.js --file ./types/hafas-client/index.d.ts --method departures
-node build/generator/index.js --file ./types/hafas-client/index.d.ts --method nearby -x Location.type Location.id Location.name Location.poi Location.address Location.altitude
+csplit src/hafas/hafasController.ts /Range/ {1}
+
+echo "  // beginOfRange" > xx01
+node build/generator/index.js --file ./types/hafas-client/index.d.ts --method locations >> xx01
+node build/generator/index.js --file ./types/hafas-client/index.d.ts --method journeys -x JourneysOptions.arrival JourneysOptions.products JourneysOptions.earlierThan JourneysOptions.laterThan  >> xx01
+node build/generator/index.js --file ./types/hafas-client/index.d.ts --method departures  >> xx01
+node build/generator/index.js --file ./types/hafas-client/index.d.ts --method trip  >> xx01
+node build/generator/index.js --file ./types/hafas-client/index.d.ts --method nearby -x Location.type Location.id Location.name Location.poi Location.address Location.altitude  >> xx01
+
+cat xx00 xx01 xx02 > src/hafas/hafasController.ts
+
+rm xx0*
+
