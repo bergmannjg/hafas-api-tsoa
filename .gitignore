@@ -1,6 +1,7 @@
 node_modules/
 build/
 .vscode
+types/hafas-client/p/
 
 yarn.lock
 package-lock.json

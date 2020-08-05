@@ -7,6 +7,7 @@
 		"responses": {},
 		"schemas": {
 			"Station": {
+				"description": "A station is a larger building or area that can be identified by a name.\nIt is usually represented by a single node on a public transport map.\nWhereas a stop usually specifies a location, a station often is a broader area\nthat may span across multiple levels or buildings.",
 				"properties": {
 					"type": {
 						"type": "string",
@@ -56,6 +57,7 @@
 				"additionalProperties": false
 			},
 			"Location": {
+				"description": "A location object is used by other items to indicate their locations.",
 				"properties": {
 					"type": {
 						"type": "string",
@@ -299,7 +301,7 @@
 				"type": "object",
 				"additionalProperties": false
 			},
-			"IDs": {
+			"Ids": {
 				"properties": {
 					"dhid": {
 						"type": "string",
@@ -310,6 +312,7 @@
 				"additionalProperties": false
 			},
 			"Stop": {
+				"description": "A stop is a single small point or structure at which vehicles stop.\nA stop always belongs to a station. It may for example be a sign, a basic shelter or a railway platform.",
 				"properties": {
 					"type": {
 						"type": "string",
@@ -346,7 +349,7 @@
 						"$ref": "#/components/schemas/ReisezentrumOpeningHours"
 					},
 					"ids": {
-						"$ref": "#/components/schemas/IDs"
+						"$ref": "#/components/schemas/Ids"
 					},
 					"loadFactor": {
 						"type": "string"
@@ -391,6 +394,7 @@
 				"additionalProperties": false
 			},
 			"StopOver": {
+				"description": "A stopover represents a vehicle stopping at a stop/station at a specific time.",
 				"properties": {
 					"stop": {
 						"anyOf": [
@@ -621,6 +625,7 @@
 				"additionalProperties": false
 			},
 			"Leg": {
+				"description": "Leg of journey",
 				"properties": {
 					"tripId": {
 						"type": "string"
@@ -758,6 +763,7 @@
 				}
 			},
 			"Journey": {
+				"description": "A journey is a computed set of directions to get from A to B at a specific time.\nIt would typically be the result of a route planning algorithm.",
 				"properties": {
 					"type": {
 						"type": "string",
@@ -899,6 +905,97 @@
 				],
 				"type": "object",
 				"additionalProperties": false
+			},
+			"Duration": {
+				"properties": {
+					"duration": {
+						"type": "number",
+						"format": "double"
+					},
+					"stations": {
+						"items": {
+							"anyOf": [
+								{
+									"$ref": "#/components/schemas/Station"
+								},
+								{
+									"$ref": "#/components/schemas/Stop"
+								}
+							]
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"duration",
+					"stations"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"Frame": {
+				"properties": {
+					"origin": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/Stop"
+							},
+							{
+								"$ref": "#/components/schemas/Location"
+							}
+						]
+					},
+					"destination": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/Stop"
+							},
+							{
+								"$ref": "#/components/schemas/Location"
+							}
+						]
+					},
+					"t": {
+						"type": "number",
+						"format": "double"
+					}
+				},
+				"required": [
+					"origin",
+					"destination"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"Movement": {
+				"properties": {
+					"direction": {
+						"type": "string"
+					},
+					"tripId": {
+						"type": "string"
+					},
+					"line": {
+						"$ref": "#/components/schemas/Line"
+					},
+					"location": {
+						"$ref": "#/components/schemas/Location"
+					},
+					"nextStopovers": {
+						"items": {
+							"$ref": "#/components/schemas/StopOver"
+						},
+						"type": "array"
+					},
+					"frames": {
+						"items": {
+							"$ref": "#/components/schemas/Frame"
+						},
+						"type": "array"
+					}
+				},
+				"type": "object",
+				"additionalProperties": false
 			}
 		},
 		"securitySchemes": {}
@@ -908,137 +1005,24 @@
 		"version": "0.0.1",
 		"license": {
 			"name": "MIT"
-		}
+		},
+		"contact": {}
 	},
 	"openapi": "3.0.0",
 	"paths": {
-		"/hafas/locations": {
-			"get": {
-				"operationId": "Getlocations",
-				"responses": {
-					"200": {
-						"content": {
-							"application/json": {
-								"schema": {
-									"items": {
-										"anyOf": [
-											{
-												"$ref": "#/components/schemas/Station"
-											},
-											{
-												"$ref": "#/components/schemas/Stop"
-											},
-											{
-												"$ref": "#/components/schemas/Location"
-											}
-										]
-									},
-									"type": "array"
-								}
-							}
-						},
-						"description": "Ok"
-					}
-				},
-				"description": "Retrieves locations or stops",
-				"security": [],
-				"parameters": [
-					{
-						"description": "name of station",
-						"in": "query",
-						"name": "name",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					},
-					{
-						"description": "find only exact matches?",
-						"in": "query",
-						"name": "fuzzy",
-						"required": false,
-						"schema": {
-							"default": true,
-							"type": "boolean"
-						}
-					},
-					{
-						"description": "how many search results?",
-						"in": "query",
-						"name": "results",
-						"required": false,
-						"schema": {
-							"default": 10,
-							"format": "double",
-							"type": "number"
-						}
-					},
-					{
-						"description": "return stops/stations?",
-						"in": "query",
-						"name": "stops",
-						"required": false,
-						"schema": {
-							"default": true,
-							"type": "boolean"
-						}
-					},
-					{
-						"description": "return addresses",
-						"in": "query",
-						"name": "addresses",
-						"required": false,
-						"schema": {
-							"default": false,
-							"type": "boolean"
-						}
-					},
-					{
-						"description": "points of interest",
-						"in": "query",
-						"name": "poi",
-						"required": false,
-						"schema": {
-							"default": true,
-							"type": "boolean"
-						}
-					},
-					{
-						"description": "parse & expose lines at each stop/station?",
-						"in": "query",
-						"name": "linesOfStops",
-						"required": false,
-						"schema": {
-							"default": false,
-							"type": "boolean"
-						}
-					},
-					{
-						"description": "Language of the results",
-						"in": "query",
-						"name": "language",
-						"required": false,
-						"schema": {
-							"default": "en",
-							"type": "string"
-						}
-					}
-				]
-			}
-		},
 		"/hafas/journeys": {
 			"get": {
 				"operationId": "Getjourneys",
 				"responses": {
 					"200": {
+						"description": "Ok",
 						"content": {
 							"application/json": {
 								"schema": {
 									"$ref": "#/components/schemas/Journeys"
 								}
 							}
-						},
-						"description": "Ok"
+						}
 					}
 				},
 				"description": "Retrieves journeys",
@@ -1204,6 +1188,7 @@
 						}
 					},
 					{
+						"description": "start with walking",
 						"in": "query",
 						"name": "startWithWalking",
 						"required": false,
@@ -1235,11 +1220,119 @@
 				]
 			}
 		},
+		"/hafas/trip": {
+			"get": {
+				"operationId": "Gettrip",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"anyOf": [
+										{
+											"$ref": "#/components/schemas/Trip"
+										},
+										{
+											"properties": {},
+											"type": "object"
+										}
+									]
+								}
+							}
+						}
+					}
+				},
+				"description": "Refetch information about a trip",
+				"security": [],
+				"parameters": [
+					{
+						"description": "trip id, see {@link Leg#tripId}",
+						"in": "query",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"description": "name",
+						"in": "query",
+						"name": "name",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"description": "return stations on the way?",
+						"in": "query",
+						"name": "stopovers",
+						"required": false,
+						"schema": {
+							"default": true,
+							"type": "boolean"
+						}
+					},
+					{
+						"description": "return a shape for the trip?",
+						"in": "query",
+						"name": "polyline",
+						"required": false,
+						"schema": {
+							"default": false,
+							"type": "boolean"
+						}
+					},
+					{
+						"description": "parse & expose sub-stops of stations?",
+						"in": "query",
+						"name": "subStops",
+						"required": false,
+						"schema": {
+							"default": true,
+							"type": "boolean"
+						}
+					},
+					{
+						"description": "parse & expose entrances of stops/stations?",
+						"in": "query",
+						"name": "entrances",
+						"required": false,
+						"schema": {
+							"default": true,
+							"type": "boolean"
+						}
+					},
+					{
+						"description": "parse & expose hints & warnings?",
+						"in": "query",
+						"name": "remarks",
+						"required": false,
+						"schema": {
+							"default": true,
+							"type": "boolean"
+						}
+					},
+					{
+						"description": "Language of the results",
+						"in": "query",
+						"name": "language",
+						"required": false,
+						"schema": {
+							"default": "en",
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
 		"/hafas/departures": {
 			"get": {
 				"operationId": "Getdepartures",
 				"responses": {
 					"200": {
+						"description": "Ok",
 						"content": {
 							"application/json": {
 								"schema": {
@@ -1249,8 +1342,7 @@
 									"type": "array"
 								}
 							}
-						},
-						"description": "Ok"
+						}
 					}
 				},
 				"description": "Retrieves departures",
@@ -1378,34 +1470,39 @@
 				]
 			}
 		},
-		"/hafas/trip": {
+		"/hafas/locations": {
 			"get": {
-				"operationId": "Gettrip",
+				"operationId": "Getlocations",
 				"responses": {
 					"200": {
+						"description": "Ok",
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/Trip"
+									"items": {
+										"anyOf": [
+											{
+												"$ref": "#/components/schemas/Station"
+											},
+											{
+												"$ref": "#/components/schemas/Stop"
+											},
+											{
+												"$ref": "#/components/schemas/Location"
+											}
+										]
+									},
+									"type": "array"
 								}
 							}
-						},
-						"description": "Ok"
+						}
 					}
 				},
-				"description": "Refetch information about a trip",
+				"description": "Retrieves locations or stops",
 				"security": [],
 				"parameters": [
 					{
-						"description": "trip id, see {@link Leg#tripId}",
-						"in": "query",
-						"name": "id",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					},
-					{
+						"description": "name of station",
 						"in": "query",
 						"name": "name",
 						"required": true,
@@ -1414,9 +1511,9 @@
 						}
 					},
 					{
-						"description": "return stations on the way?",
+						"description": "find only exact matches?",
 						"in": "query",
-						"name": "stopovers",
+						"name": "fuzzy",
 						"required": false,
 						"schema": {
 							"default": true,
@@ -1424,9 +1521,130 @@
 						}
 					},
 					{
-						"description": "return a shape for the trip?",
+						"description": "how many search results?",
 						"in": "query",
-						"name": "polyline",
+						"name": "results",
+						"required": false,
+						"schema": {
+							"default": 10,
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"description": "return stops/stations?",
+						"in": "query",
+						"name": "stops",
+						"required": false,
+						"schema": {
+							"default": true,
+							"type": "boolean"
+						}
+					},
+					{
+						"description": "return addresses",
+						"in": "query",
+						"name": "addresses",
+						"required": false,
+						"schema": {
+							"default": false,
+							"type": "boolean"
+						}
+					},
+					{
+						"description": "points of interest",
+						"in": "query",
+						"name": "poi",
+						"required": false,
+						"schema": {
+							"default": true,
+							"type": "boolean"
+						}
+					},
+					{
+						"description": "parse & expose sub-stops of stations?",
+						"in": "query",
+						"name": "subStops",
+						"required": false,
+						"schema": {
+							"default": false,
+							"type": "boolean"
+						}
+					},
+					{
+						"description": "parse & expose entrances of stops/stations?",
+						"in": "query",
+						"name": "entrances",
+						"required": false,
+						"schema": {
+							"default": true,
+							"type": "boolean"
+						}
+					},
+					{
+						"description": "parse & expose lines at each stop/station?",
+						"in": "query",
+						"name": "linesOfStops",
+						"required": false,
+						"schema": {
+							"default": false,
+							"type": "boolean"
+						}
+					},
+					{
+						"description": "Language of the results",
+						"in": "query",
+						"name": "language",
+						"required": false,
+						"schema": {
+							"default": "en",
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/hafas/stop": {
+			"get": {
+				"operationId": "Getstop",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"anyOf": [
+										{
+											"$ref": "#/components/schemas/Station"
+										},
+										{
+											"$ref": "#/components/schemas/Stop"
+										},
+										{
+											"$ref": "#/components/schemas/Location"
+										}
+									]
+								}
+							}
+						}
+					}
+				},
+				"description": "Retrieves information about a stop",
+				"security": [],
+				"parameters": [
+					{
+						"description": "uid of station",
+						"in": "query",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"description": "parse & expose lines at the stop/station?",
+						"in": "query",
+						"name": "linesOfStops",
 						"required": false,
 						"schema": {
 							"default": false,
@@ -1481,17 +1699,27 @@
 				"operationId": "Getnearby",
 				"responses": {
 					"200": {
+						"description": "Ok",
 						"content": {
 							"application/json": {
 								"schema": {
 									"items": {
-										"$ref": "#/components/schemas/Stop"
+										"anyOf": [
+											{
+												"$ref": "#/components/schemas/Station"
+											},
+											{
+												"$ref": "#/components/schemas/Stop"
+											},
+											{
+												"$ref": "#/components/schemas/Location"
+											}
+										]
 									},
 									"type": "array"
 								}
 							}
-						},
-						"description": "Ok"
+						}
 					}
 				},
 				"description": "Retrieves nearby stops from location",
@@ -1592,6 +1820,255 @@
 						"required": false,
 						"schema": {
 							"default": "en",
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/hafas/reachableFrom": {
+			"get": {
+				"operationId": "GetreachableFrom",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"anyOf": [
+										{
+											"items": {
+												"$ref": "#/components/schemas/Duration"
+											},
+											"type": "array"
+										},
+										{
+											"properties": {},
+											"type": "object"
+										}
+									]
+								}
+							}
+						}
+					}
+				},
+				"description": "Retrieves stations reachable within a certain time from a location",
+				"security": [],
+				"parameters": [
+					{
+						"in": "query",
+						"name": "address",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "query",
+						"name": "longitude",
+						"required": true,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"in": "query",
+						"name": "latitude",
+						"required": true,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"in": "query",
+						"name": "distance",
+						"required": true,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"description": "maximum of transfers",
+						"in": "query",
+						"name": "maxTransfers",
+						"required": false,
+						"schema": {
+							"default": 5,
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"description": "maximum travel duration in minutes, pass `null` for infinite",
+						"in": "query",
+						"name": "maxDuration",
+						"required": false,
+						"schema": {
+							"default": 20,
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"description": "parse & expose sub-stops of stations?",
+						"in": "query",
+						"name": "subStops",
+						"required": false,
+						"schema": {
+							"default": true,
+							"type": "boolean"
+						}
+					},
+					{
+						"description": "parse & expose entrances of stops/stations?",
+						"in": "query",
+						"name": "entrances",
+						"required": false,
+						"schema": {
+							"default": true,
+							"type": "boolean"
+						}
+					}
+				]
+			}
+		},
+		"/hafas/radar": {
+			"get": {
+				"operationId": "Getradar",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"anyOf": [
+										{
+											"items": {
+												"$ref": "#/components/schemas/Movement"
+											},
+											"type": "array"
+										},
+										{
+											"properties": {},
+											"type": "object"
+										}
+									]
+								}
+							}
+						}
+					}
+				},
+				"description": "Retrieves all vehicles currently in an area.",
+				"security": [],
+				"parameters": [
+					{
+						"in": "query",
+						"name": "north",
+						"required": true,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"in": "query",
+						"name": "west",
+						"required": true,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"in": "query",
+						"name": "south",
+						"required": true,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"in": "query",
+						"name": "east",
+						"required": true,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"description": "maximum number of vehicles",
+						"in": "query",
+						"name": "results",
+						"required": false,
+						"schema": {
+							"default": 256,
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"description": "nr of frames to compute",
+						"in": "query",
+						"name": "frames",
+						"required": false,
+						"schema": {
+							"default": 3,
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"description": "compute frames for the next n seconds",
+						"in": "query",
+						"name": "duration",
+						"required": false,
+						"schema": {
+							"default": 20,
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"description": "parse & expose sub-stops of stations?",
+						"in": "query",
+						"name": "subStops",
+						"required": false,
+						"schema": {
+							"default": true,
+							"type": "boolean"
+						}
+					},
+					{
+						"description": "parse & expose entrances of stops/stations?",
+						"in": "query",
+						"name": "entrances",
+						"required": false,
+						"schema": {
+							"default": true,
+							"type": "boolean"
+						}
+					},
+					{
+						"description": "return a shape for the trip?",
+						"in": "query",
+						"name": "polylines",
+						"required": false,
+						"schema": {
+							"default": false,
+							"type": "boolean"
+						}
+					},
+					{
+						"description": "when",
+						"in": "query",
+						"name": "when",
+						"required": false,
+						"schema": {
 							"type": "string"
 						}
 					}

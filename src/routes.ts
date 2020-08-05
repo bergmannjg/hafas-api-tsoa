@@ -1,7 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute } from 'tsoa';
+import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute, HttpStatusCodeLiteral, TsoaResponse } from 'tsoa';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { HafasController } from './hafas/hafasController';
 import * as express from 'express';
@@ -102,7 +102,7 @@ const models: TsoaRoute.Models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "IDs": {
+    "Ids": {
         "dataType": "refObject",
         "properties": {
             "dhid": { "dataType": "string" },
@@ -122,7 +122,7 @@ const models: TsoaRoute.Models = {
             "lines": { "dataType": "array", "array": { "ref": "Line" } },
             "isMeta": { "dataType": "boolean" },
             "reisezentrumOpeningHours": { "ref": "ReisezentrumOpeningHours" },
-            "ids": { "ref": "IDs" },
+            "ids": { "ref": "Ids" },
             "loadFactor": { "dataType": "string" },
         },
         "additionalProperties": false,
@@ -320,6 +320,38 @@ const models: TsoaRoute.Models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "Duration": {
+        "dataType": "refObject",
+        "properties": {
+            "duration": { "dataType": "double", "required": true },
+            "stations": { "dataType": "array", "array": { "dataType": "union", "subSchemas": [{ "ref": "Station" }, { "ref": "Stop" }] }, "required": true },
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "Frame": {
+        "dataType": "refObject",
+        "properties": {
+            "origin": { "dataType": "union", "subSchemas": [{ "ref": "Stop" }, { "ref": "Location" }], "required": true },
+            "destination": { "dataType": "union", "subSchemas": [{ "ref": "Stop" }, { "ref": "Location" }], "required": true },
+            "t": { "dataType": "double" },
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "Movement": {
+        "dataType": "refObject",
+        "properties": {
+            "direction": { "dataType": "string" },
+            "tripId": { "dataType": "string" },
+            "line": { "ref": "Line" },
+            "location": { "ref": "Location" },
+            "nextStopovers": { "dataType": "array", "array": { "ref": "StopOver" } },
+            "frames": { "dataType": "array", "array": { "ref": "Frame" } },
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 };
 const validationService = new ValidationService(models);
 
@@ -330,35 +362,6 @@ export function RegisterRoutes(app: express.Express) {
     //  NOTE: If you do not see routes for all of your controllers in this file, then you might not have informed tsoa of where to look
     //      Please look into the "controllerPathGlobs" config option described in the readme: https://github.com/lukeautry/tsoa
     // ###########################################################################################################
-    app.get('/hafas/locations',
-        function(request: any, response: any, next: any) {
-            const args = {
-                name: { "in": "query", "name": "name", "required": true, "dataType": "string" },
-                fuzzy: { "default": true, "in": "query", "name": "fuzzy", "dataType": "boolean" },
-                results: { "default": 10, "in": "query", "name": "results", "dataType": "double" },
-                stops: { "default": true, "in": "query", "name": "stops", "dataType": "boolean" },
-                addresses: { "default": false, "in": "query", "name": "addresses", "dataType": "boolean" },
-                poi: { "default": true, "in": "query", "name": "poi", "dataType": "boolean" },
-                linesOfStops: { "default": false, "in": "query", "name": "linesOfStops", "dataType": "boolean" },
-                language: { "default": "en", "in": "query", "name": "language", "dataType": "string" },
-            };
-
-            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-
-            let validatedArgs: any[] = [];
-            try {
-                validatedArgs = getValidatedArgs(args, request);
-            } catch (err) {
-                return next(err);
-            }
-
-            const controller = new HafasController();
-
-
-            const promise = controller.getlocations.apply(controller, validatedArgs as any);
-            promiseHandler(controller, promise, response, next);
-        });
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     app.get('/hafas/journeys',
         function(request: any, response: any, next: any) {
             const args = {
@@ -387,7 +390,7 @@ export function RegisterRoutes(app: express.Express) {
 
             let validatedArgs: any[] = [];
             try {
-                validatedArgs = getValidatedArgs(args, request);
+                validatedArgs = getValidatedArgs(args, request, response);
             } catch (err) {
                 return next(err);
             }
@@ -396,6 +399,35 @@ export function RegisterRoutes(app: express.Express) {
 
 
             const promise = controller.getjourneys.apply(controller, validatedArgs as any);
+            promiseHandler(controller, promise, response, next);
+        });
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    app.get('/hafas/trip',
+        function(request: any, response: any, next: any) {
+            const args = {
+                id: { "in": "query", "name": "id", "required": true, "dataType": "string" },
+                name: { "in": "query", "name": "name", "required": true, "dataType": "string" },
+                stopovers: { "default": true, "in": "query", "name": "stopovers", "dataType": "boolean" },
+                polyline: { "default": false, "in": "query", "name": "polyline", "dataType": "boolean" },
+                subStops: { "default": true, "in": "query", "name": "subStops", "dataType": "boolean" },
+                entrances: { "default": true, "in": "query", "name": "entrances", "dataType": "boolean" },
+                remarks: { "default": true, "in": "query", "name": "remarks", "dataType": "boolean" },
+                language: { "default": "en", "in": "query", "name": "language", "dataType": "string" },
+            };
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = getValidatedArgs(args, request, response);
+            } catch (err) {
+                return next(err);
+            }
+
+            const controller = new HafasController();
+
+
+            const promise = controller.gettrip.apply(controller, validatedArgs as any);
             promiseHandler(controller, promise, response, next);
         });
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
@@ -420,7 +452,7 @@ export function RegisterRoutes(app: express.Express) {
 
             let validatedArgs: any[] = [];
             try {
-                validatedArgs = getValidatedArgs(args, request);
+                validatedArgs = getValidatedArgs(args, request, response);
             } catch (err) {
                 return next(err);
             }
@@ -432,13 +464,42 @@ export function RegisterRoutes(app: express.Express) {
             promiseHandler(controller, promise, response, next);
         });
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    app.get('/hafas/trip',
+    app.get('/hafas/locations',
+        function(request: any, response: any, next: any) {
+            const args = {
+                name: { "in": "query", "name": "name", "required": true, "dataType": "string" },
+                fuzzy: { "default": true, "in": "query", "name": "fuzzy", "dataType": "boolean" },
+                results: { "default": 10, "in": "query", "name": "results", "dataType": "double" },
+                stops: { "default": true, "in": "query", "name": "stops", "dataType": "boolean" },
+                addresses: { "default": false, "in": "query", "name": "addresses", "dataType": "boolean" },
+                poi: { "default": true, "in": "query", "name": "poi", "dataType": "boolean" },
+                subStops: { "default": false, "in": "query", "name": "subStops", "dataType": "boolean" },
+                entrances: { "default": true, "in": "query", "name": "entrances", "dataType": "boolean" },
+                linesOfStops: { "default": false, "in": "query", "name": "linesOfStops", "dataType": "boolean" },
+                language: { "default": "en", "in": "query", "name": "language", "dataType": "string" },
+            };
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = getValidatedArgs(args, request, response);
+            } catch (err) {
+                return next(err);
+            }
+
+            const controller = new HafasController();
+
+
+            const promise = controller.getlocations.apply(controller, validatedArgs as any);
+            promiseHandler(controller, promise, response, next);
+        });
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    app.get('/hafas/stop',
         function(request: any, response: any, next: any) {
             const args = {
                 id: { "in": "query", "name": "id", "required": true, "dataType": "string" },
-                name: { "in": "query", "name": "name", "required": true, "dataType": "string" },
-                stopovers: { "default": true, "in": "query", "name": "stopovers", "dataType": "boolean" },
-                polyline: { "default": false, "in": "query", "name": "polyline", "dataType": "boolean" },
+                linesOfStops: { "default": false, "in": "query", "name": "linesOfStops", "dataType": "boolean" },
                 subStops: { "default": true, "in": "query", "name": "subStops", "dataType": "boolean" },
                 entrances: { "default": true, "in": "query", "name": "entrances", "dataType": "boolean" },
                 remarks: { "default": true, "in": "query", "name": "remarks", "dataType": "boolean" },
@@ -449,7 +510,7 @@ export function RegisterRoutes(app: express.Express) {
 
             let validatedArgs: any[] = [];
             try {
-                validatedArgs = getValidatedArgs(args, request);
+                validatedArgs = getValidatedArgs(args, request, response);
             } catch (err) {
                 return next(err);
             }
@@ -457,7 +518,7 @@ export function RegisterRoutes(app: express.Express) {
             const controller = new HafasController();
 
 
-            const promise = controller.gettrip.apply(controller, validatedArgs as any);
+            const promise = controller.getstop.apply(controller, validatedArgs as any);
             promiseHandler(controller, promise, response, next);
         });
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
@@ -480,7 +541,7 @@ export function RegisterRoutes(app: express.Express) {
 
             let validatedArgs: any[] = [];
             try {
-                validatedArgs = getValidatedArgs(args, request);
+                validatedArgs = getValidatedArgs(args, request, response);
             } catch (err) {
                 return next(err);
             }
@@ -489,6 +550,67 @@ export function RegisterRoutes(app: express.Express) {
 
 
             const promise = controller.getnearby.apply(controller, validatedArgs as any);
+            promiseHandler(controller, promise, response, next);
+        });
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    app.get('/hafas/reachableFrom',
+        function(request: any, response: any, next: any) {
+            const args = {
+                address: { "in": "query", "name": "address", "required": true, "dataType": "string" },
+                longitude: { "in": "query", "name": "longitude", "required": true, "dataType": "double" },
+                latitude: { "in": "query", "name": "latitude", "required": true, "dataType": "double" },
+                distance: { "in": "query", "name": "distance", "required": true, "dataType": "double" },
+                maxTransfers: { "default": 5, "in": "query", "name": "maxTransfers", "dataType": "double" },
+                maxDuration: { "default": 20, "in": "query", "name": "maxDuration", "dataType": "double" },
+                subStops: { "default": true, "in": "query", "name": "subStops", "dataType": "boolean" },
+                entrances: { "default": true, "in": "query", "name": "entrances", "dataType": "boolean" },
+            };
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = getValidatedArgs(args, request, response);
+            } catch (err) {
+                return next(err);
+            }
+
+            const controller = new HafasController();
+
+
+            const promise = controller.getreachableFrom.apply(controller, validatedArgs as any);
+            promiseHandler(controller, promise, response, next);
+        });
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    app.get('/hafas/radar',
+        function(request: any, response: any, next: any) {
+            const args = {
+                north: { "in": "query", "name": "north", "required": true, "dataType": "double" },
+                west: { "in": "query", "name": "west", "required": true, "dataType": "double" },
+                south: { "in": "query", "name": "south", "required": true, "dataType": "double" },
+                east: { "in": "query", "name": "east", "required": true, "dataType": "double" },
+                results: { "default": 256, "in": "query", "name": "results", "dataType": "double" },
+                frames: { "default": 3, "in": "query", "name": "frames", "dataType": "double" },
+                duration: { "default": 20, "in": "query", "name": "duration", "dataType": "double" },
+                subStops: { "default": true, "in": "query", "name": "subStops", "dataType": "boolean" },
+                entrances: { "default": true, "in": "query", "name": "entrances", "dataType": "boolean" },
+                polylines: { "default": false, "in": "query", "name": "polylines", "dataType": "boolean" },
+                when: { "in": "query", "name": "when", "dataType": "any" },
+            };
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = getValidatedArgs(args, request, response);
+            } catch (err) {
+                return next(err);
+            }
+
+            const controller = new HafasController();
+
+
+            const promise = controller.getradar.apply(controller, validatedArgs as any);
             promiseHandler(controller, promise, response, next);
         });
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
@@ -506,31 +628,45 @@ export function RegisterRoutes(app: express.Express) {
         return Promise.resolve(promise)
             .then((data: any) => {
                 let statusCode;
+                let headers;
                 if (isController(controllerObj)) {
-                    const headers = controllerObj.getHeaders();
-                    Object.keys(headers).forEach((name: string) => {
-                        response.set(name, headers[name]);
-                    });
-
+                    headers = controllerObj.getHeaders();
                     statusCode = controllerObj.getStatus();
                 }
 
                 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
-                if (data && typeof data.pipe === 'function' && data.readable && typeof data._read === 'function') {
-                    data.pipe(response);
-                } else if (data || data === false) { // === false allows boolean result
-                    response.status(statusCode || 200).json(data);
-                } else {
-                    response.status(statusCode || 204).end();
-                }
+                returnHandler(response, statusCode, data, headers)
             })
             .catch((error: any) => next(error));
     }
 
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
-    function getValidatedArgs(args: any, request: any): any[] {
+    function returnHandler(response: any, statusCode?: number, data?: any, headers: any = {}) {
+        Object.keys(headers).forEach((name: string) => {
+            response.set(name, headers[name]);
+        });
+        if (data && typeof data.pipe === 'function' && data.readable && typeof data._read === 'function') {
+            data.pipe(response);
+        } else if (data || data === false) { // === false allows boolean result
+            response.status(statusCode || 200).json(data);
+        } else {
+            response.status(statusCode || 204).end();
+        }
+    }
+
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+    function responder(response: any): TsoaResponse<HttpStatusCodeLiteral, unknown> {
+        return function(status, data, headers) {
+            returnHandler(response, status, data, headers);
+        };
+    };
+
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+    function getValidatedArgs(args: any, request: any, response: any): any[] {
         const fieldErrors: FieldErrors = {};
         const values = Object.keys(args).map((key) => {
             const name = args[key].name;
@@ -547,6 +683,8 @@ export function RegisterRoutes(app: express.Express) {
                     return validationService.ValidateParam(args[key], request.body, name, fieldErrors, undefined, { "noImplicitAdditionalProperties": "throw-on-extras" });
                 case 'body-prop':
                     return validationService.ValidateParam(args[key], request.body[name], name, fieldErrors, 'body.', { "noImplicitAdditionalProperties": "throw-on-extras" });
+                case 'res':
+                    return responder(response);
             }
         });
 

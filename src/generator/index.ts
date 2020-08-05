@@ -1,3 +1,4 @@
+// Generate controller methods from a TypeScript declaration file
 import * as ts from "typescript";
 const argv = require('yargs').array('x').argv;
 
@@ -29,14 +30,25 @@ class Parameter {
     exclusionPosible = () => this.literalType() || this.optional || this.defaultValue != "";
 }
 
+class SymbolInfo {
+    symbol: ts.Symbol;
+    optional: boolean;
+    constructor(symbol: ts.Symbol, optional: boolean) {
+        this.symbol = symbol;
+        this.optional = optional;
+    }
+}
+
 class Method {
     methodName: string;
+    optional: boolean;
     returnType: string;
     aliasReturnType: string;
     comment: string;
     parameters: Parameter[];
-    constructor(methodName: string, returnType: string, comment: string, parameters: Parameter[]) {
+    constructor(methodName: string, optional: boolean, returnType: string, comment: string, parameters: Parameter[]) {
         this.methodName = methodName;
+        this.optional = optional;
         this.returnType = returnType;
         this.aliasReturnType = "";
         this.comment = comment;
@@ -54,26 +66,26 @@ function extract(file: string, methodName: string, excludes: string[], maxdepth:
         return;
     }
 
-    const methodSymbol = findMethodSymbol(sourceFile, methodName);
-    if (methodSymbol == null) {
+    const methodSymbolInfo = findMethodSymbol(sourceFile, methodName);
+    if (!methodSymbolInfo) {
         console.log("method %s not found", methodName)
         return;
     }
 
-    const method = collectMethodInfo(methodName, methodSymbol);
+    const method = collectMethodInfo(methodName, methodSymbolInfo.symbol, methodSymbolInfo.optional);
     if (!method.returnType.includes("Promise")) {
-        console.log("Promise expected as returnType")
+        console.error(`"error: method ${method.methodName}, promise expected as returnType"`)
         return;
     }
 
     adjustReturnType(method);
     emitControllerMethod(method, excludes);
 
-    function findMethodSymbol(sourceFile: ts.SourceFile, methodName: string): ts.Symbol {
-        let symbol: any = null;
+    function findMethodSymbol(sourceFile: ts.SourceFile, methodName: string): SymbolInfo | undefined {
+        let symbolInfo: SymbolInfo | undefined;
 
         extractNode(sourceFile);
-        return symbol;
+        return symbolInfo;
 
         function extractNode(node: ts.Node) {
             if (ts.isInterfaceDeclaration(node)) {
@@ -81,18 +93,19 @@ function extract(file: string, methodName: string, excludes: string[], maxdepth:
                     if (ts.isPropertySignature(member)) {
                         if (ts.isIdentifier(member.name) && member.type && ts.isFunctionTypeNode(member.type)) {
                             if (member.name.text === methodName) {
-                                symbol = checker.getSymbolAtLocation(member.name);
+                                const symbol = checker.getSymbolAtLocation(member.name);
+                                if (symbol) symbolInfo = new SymbolInfo(symbol, !!member.questionToken);
                             }
                         }
                     }
                 }
             }
 
-            if (symbol == null) ts.forEachChild(node, extractNode);
+            if (!symbolInfo) ts.forEachChild(node, extractNode);
         };
     }
 
-    function collectMethodInfo(methodName: string, symbol: ts.Symbol): Method {
+    function collectMethodInfo(methodName: string, symbol: ts.Symbol, optional: boolean): Method {
         const parameters: Parameter[] = [];
 
         function collectParameter(parameterSymbol: ts.Symbol, depth: number, jsdocParamTag?: ts.JSDocTagInfo) {
@@ -147,11 +160,11 @@ function extract(file: string, methodName: string, excludes: string[], maxdepth:
             }
         }
 
-        return new Method(methodName, methodReturnType, methodComment, parameters);
+        return new Method(methodName, optional, methodReturnType, methodComment, parameters);
     }
 
     // tsoa cannot handle readonly typeoperator
-    function adjustReturnType(methid: Method) {
+    function adjustReturnType(method: Method) {
         // strip Promise
         method.returnType = method.returnType.replace("Promise<", "");
         method.returnType = method.returnType.substr(0, method.returnType.length - 1);
@@ -160,27 +173,28 @@ function extract(file: string, methodName: string, excludes: string[], maxdepth:
         method.aliasReturnType = " as " + method.returnType;
 
         // add Promise again
-        method.returnType = "Promise<" + method.returnType + ">";
+        if (method.optional) method.returnType = "Promise<" + method.returnType + "|{}>";
+        else method.returnType = "Promise<" + method.returnType + ">";
     }
 
     function emitControllerMethod(method: Method, excludes: string[]) {
         const errors = method.parameters.filter(p => excludes.find(x => x === p.path() && !p.exclusionPosible()));
         if (errors.length) {
             for (const error of errors) {
-                console.log("exlude field '%s' has no default value", error.name);
+                console.error("exlude field '%s' has no default value", error.name);
 
             }
             return;
         }
 
         // strip union type to string stype
-        const unions = method.parameters.filter(p => p.typeName.includes("|"));
+        const unions = method.parameters.filter(p => p.typeName.includes("|") && !excludes.find(x => x === p.path()));
         if (unions.length) {
             for (const union of unions) {
                 if (union.typeName.includes("string")) {
                     union.typeName = "string";
                 } else {
-                    console.log("union type '%s' must contain string type", union.typeName);
+                    console.error(`"error: method ${method.methodName}, union type '${union.typeName}' must contain string type"`);
                     return;
                 }
             }
@@ -236,7 +250,8 @@ function extract(file: string, methodName: string, excludes: string[], maxdepth:
         if (currentDepth > 1) {
             parametersString += " }";
         }
-        console.log("return await client.%s(%s)%s;", method.methodName, parametersString, method.aliasReturnType);
+        if (method.optional) console.log("return client.%s ? await client.%s(%s)%s:{};", method.methodName, method.methodName, parametersString, method.aliasReturnType);
+        else console.log("return await client.%s(%s)%s;", method.methodName, parametersString, method.aliasReturnType);
         console.log("}");
     }
 }
