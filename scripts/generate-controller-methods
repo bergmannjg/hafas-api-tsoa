@@ -1,11 +1,19 @@
 #!/bin/bash
+# inserts the controller methods in file hafasController.ts between 'beginOfRange' and 'endOfRange'
 
 if [  ! -d "./scripts" ]; then
     echo "please run from project directory"
     exit 1
 fi
 
+rm -f xx0*
+
 csplit src/hafas/hafasController.ts /Range/ {1}
+
+if [ $(ls xx0* | wc -l) != 3 ]; then
+    echo "range delimiters in controller not found"
+    exit 1
+fi
 
 echo "  // beginOfRange" > xx01
 node build/generator/index.js --file ./types/hafas-client/index.d.ts --method journeys -x JourneysOptions.arrival JourneysOptions.products JourneysOptions.earlierThan JourneysOptions.laterThan JourneysOptions.when >> xx01

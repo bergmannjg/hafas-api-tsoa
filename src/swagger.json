@@ -1229,15 +1229,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"anyOf": [
-										{
-											"$ref": "#/components/schemas/Trip"
-										},
-										{
-											"properties": {},
-											"type": "object"
-										}
-									]
+									"$ref": "#/components/schemas/Trip"
 								}
 							}
 						}
@@ -1835,18 +1827,10 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"anyOf": [
-										{
-											"items": {
-												"$ref": "#/components/schemas/Duration"
-											},
-											"type": "array"
-										},
-										{
-											"properties": {},
-											"type": "object"
-										}
-									]
+									"items": {
+										"$ref": "#/components/schemas/Duration"
+									},
+									"type": "array"
 								}
 							}
 						}
@@ -1944,18 +1928,10 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"anyOf": [
-										{
-											"items": {
-												"$ref": "#/components/schemas/Movement"
-											},
-											"type": "array"
-										},
-										{
-											"properties": {},
-											"type": "object"
-										}
-									]
+									"items": {
+										"$ref": "#/components/schemas/Movement"
+									},
+									"type": "array"
 								}
 							}
 						}

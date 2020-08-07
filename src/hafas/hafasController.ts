@@ -78,9 +78,9 @@ public async gettrip(
 @Query() entrances = true,
 @Query() remarks = true,
 @Query() language = "en",
-): Promise<Trip|{}> {
+): Promise<Trip> {
 const client = this.clientFactory();
-return client.trip ? await client.trip(id, name, { stopovers, polyline, subStops, entrances, remarks, language }) as Trip:{};
+if (client.trip) return await client.trip(id, name, { stopovers, polyline, subStops, entrances, remarks, language }) as Trip; else throw ReferenceError("method not defined");
 }
 /**
 * Retrieves departures
@@ -215,9 +215,9 @@ public async getreachableFrom(
 @Query() maxDuration = 20,
 @Query() subStops = true,
 @Query() entrances = true,
-): Promise<Array<Duration>|{}> {
+): Promise<Array<Duration>> {
 const client = this.clientFactory();
-return client.reachableFrom ? await client.reachableFrom({ type: "location", address, longitude, latitude, distance }, { maxTransfers, maxDuration, subStops, entrances }) as Array<Duration>:{};
+if (client.reachableFrom) return await client.reachableFrom({ type: "location", address, longitude, latitude, distance }, { maxTransfers, maxDuration, subStops, entrances }) as Array<Duration>; else throw ReferenceError("method not defined");
 }
 /**
 * Retrieves all vehicles currently in an area.
@@ -246,9 +246,9 @@ public async getradar(
 @Query() entrances = true,
 @Query() polylines = false,
 @Query() when = undefined,
-): Promise<Array<Movement>|{}> {
+): Promise<Array<Movement>> {
 const client = this.clientFactory();
-return client.radar ? await client.radar({ north, west, south, east }, { results, frames, duration, subStops, entrances, polylines, when }) as Array<Movement>:{};
+if (client.radar) return await client.radar({ north, west, south, east }, { results, frames, duration, subStops, entrances, polylines, when }) as Array<Movement>; else throw ReferenceError("method not defined");
 }
   // endOfRange
 }

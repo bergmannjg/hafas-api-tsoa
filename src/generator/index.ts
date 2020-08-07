@@ -1,6 +1,12 @@
 // Generate controller methods from a TypeScript declaration file
 import * as ts from "typescript";
-const argv = require('yargs').array('x').argv;
+import yargs from 'yargs';
+
+const argv = yargs.options({
+    file: { type: 'string', demandOption: true },
+    method: { type: 'string', demandOption: true },
+    x: { type: 'array' }
+}).argv;
 
 class Parameter {
     name: string;
@@ -102,19 +108,19 @@ function extract(file: string, methodName: string, excludes: string[], maxdepth:
             }
 
             if (!symbolInfo) ts.forEachChild(node, extractNode);
-        };
+        }
     }
 
     function collectMethodInfo(methodName: string, symbol: ts.Symbol, optional: boolean): Method {
         const parameters: Parameter[] = [];
 
-        function collectParameter(parameterSymbol: ts.Symbol, depth: number, jsdocParamTag?: ts.JSDocTagInfo) {
-            const type = checker.getTypeOfSymbolAtLocation(parameterSymbol, parameterSymbol.valueDeclaration!);
+        function collectParameter(parameterSymbol: ts.Symbol, depth: number, parent: string, jsdocParamTag?: ts.JSDocTagInfo) {
+            const type = checker.getTypeOfSymbolAtLocation(parameterSymbol, parameterSymbol.valueDeclaration);
             if (depth < maxdepth && type.flags & ts.TypeFlags.Object) {
                 const objType = type as ts.ObjectType;
                 if (objType.objectFlags & ts.ObjectFlags.Interface) {
                     objType.symbol.members?.forEach(element => {
-                        collectParameter(element, depth + 1);
+                        collectParameter(element, depth + 1, objType.symbol.name);
                     });
                     return;
                 }
@@ -122,14 +128,6 @@ function extract(file: string, methodName: string, excludes: string[], maxdepth:
 
             const optional = parameterSymbol.flags & ts.SymbolFlags.Optional ? true : false;
             const name = parameterSymbol.getName();
-            let parent = "";
-            const s = (parameterSymbol as any)["parent"]; // todo
-            if (s && s["flags"]) {
-                const parentSymbol = s as ts.Symbol;
-                if (parentSymbol.flags & ts.SymbolFlags.Interface) {
-                    parent = parentSymbol.getName();
-                }
-            }
             let comment = ts.displayPartsToString(parameterSymbol.getDocumentationComment(checker));
             if (comment === "" && jsdocParamTag && jsdocParamTag.text) {
                 comment = jsdocParamTag.text.substr(name.length + 1);
@@ -149,31 +147,34 @@ function extract(file: string, methodName: string, excludes: string[], maxdepth:
 
         methodComment = ts.displayPartsToString(symbol.getDocumentationComment(checker));
         const tags = symbol.getJsDocTags();
-        let callType = checker.getTypeOfSymbolAtLocation(symbol, symbol.valueDeclaration!);
+        const callType = checker.getTypeOfSymbolAtLocation(symbol, symbol.valueDeclaration);
         const signatures = callType.getCallSignatures();
         if (signatures.length === 1) {
             const signature = signatures[0];
             methodReturnType = checker.typeToString(signature.getReturnType(), undefined, ts.TypeFormatFlags.WriteArrayAsGenericType);
             for (const parameter of signature.parameters) {
                 const jsParamTags = tags.filter(t => t.name === "param" && t.text && t.text.startsWith(parameter.getName()));
-                collectParameter(parameter, 1, jsParamTags.length === 1 ? jsParamTags[0] : undefined);
+                collectParameter(parameter, 1, "", jsParamTags.length === 1 ? jsParamTags[0] : undefined);
             }
         }
 
         return new Method(methodName, optional, methodReturnType, methodComment, parameters);
     }
 
+    function stripPromise(returnType: string) {
+        const rt = returnType.replace("Promise<", "");
+        return rt.substr(0, rt.length - 1);
+    }
+
     // tsoa cannot handle readonly typeoperator
     function adjustReturnType(method: Method) {
-        // strip Promise
-        method.returnType = method.returnType.replace("Promise<", "");
-        method.returnType = method.returnType.substr(0, method.returnType.length - 1);
+        method.returnType = stripPromise(method.returnType);
 
         method.returnType = method.returnType.replace("ReadonlyArray", "Array");
         method.aliasReturnType = " as " + method.returnType;
 
         // add Promise again
-        if (method.optional) method.returnType = "Promise<" + method.returnType + "|{}>";
+        if (method.optional) method.returnType = "Promise<" + method.returnType + ">";
         else method.returnType = "Promise<" + method.returnType + ">";
     }
 
@@ -250,14 +251,18 @@ function extract(file: string, methodName: string, excludes: string[], maxdepth:
         if (currentDepth > 1) {
             parametersString += " }";
         }
-        if (method.optional) console.log("return client.%s ? await client.%s(%s)%s:{};", method.methodName, method.methodName, parametersString, method.aliasReturnType);
-        else console.log("return await client.%s(%s)%s;", method.methodName, parametersString, method.aliasReturnType);
+        if (method.optional) {
+            const errorAction = "throw ReferenceError(\"method not defined\")";
+            console.log("if (client.%s) return await client.%s(%s)%s; else %s;", method.methodName, method.methodName, parametersString, method.aliasReturnType, errorAction);
+        } else {
+            console.log("return await client.%s(%s)%s;", method.methodName, parametersString, method.aliasReturnType);
+        }
         console.log("}");
     }
 }
 
 if (argv.file && argv.method) {
-    const excludes: string[] = (argv.x) ? argv.x : [];
+    const excludes: string[] = (argv.x) ? argv.x as string[] : [];
     extract(argv.file, argv.method, excludes, 2);
 } else {
     console.log('usage: extract --file <file> --method <method> [-x <excludes>]')
