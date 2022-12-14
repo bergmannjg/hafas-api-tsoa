@@ -1,8 +1,9 @@
 import express from "express";
 import bodyParser from "body-parser";
-import { RegisterRoutes } from "./routes";
+import { RegisterRoutes } from "./routes.js";
 import { Response as ExResponse, Request as ExRequest, NextFunction } from "express";
 import swaggerUi from "swagger-ui-express";
+import sw from "./swagger.json" assert { type: 'json' }
 
 interface HafasError extends Error {
   isHafasError?: boolean;
@@ -22,7 +23,7 @@ app.use(
 app.use(bodyParser.json());
 app.use("/docs", swaggerUi.serve, async (_req: ExRequest, res: ExResponse) => {
   return res.send(
-    swaggerUi.generateHTML(await import("./swagger.json"))
+    swaggerUi.generateHTML(sw)
   );
 });
 RegisterRoutes(app);

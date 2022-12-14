@@ -2,11 +2,11 @@
 import * as ts from "typescript";
 import yargs from 'yargs';
 
-const argv = yargs.options({
+const argv = yargs(process.argv.slice(2)).options({
     file: { type: 'string', demandOption: true },
     method: { type: 'string', demandOption: true },
     x: { type: 'array' }
-}).argv;
+}).parseSync();
 
 class Parameter {
     name: string;
@@ -79,8 +79,8 @@ function extract(file: string, methodName: string, excludes: string[], maxdepth:
     }
 
     const method = collectMethodInfo(methodName, methodSymbolInfo.symbol, methodSymbolInfo.optional);
-    if (!method.returnType.includes("Promise")) {
-        console.error(`"error: method ${method.methodName}, promise expected as returnType"`)
+    if (!method || !method.returnType.includes("Promise")) {
+        console.error(`"error: method ${method?.methodName}, promise expected as returnType"`)
         return;
     }
 
@@ -111,54 +111,57 @@ function extract(file: string, methodName: string, excludes: string[], maxdepth:
         }
     }
 
-    function collectMethodInfo(methodName: string, symbol: ts.Symbol, optional: boolean): Method {
+    function collectMethodInfo(methodName: string, symbol: ts.Symbol, optional: boolean): Method | undefined {
         const parameters: Parameter[] = [];
 
         function collectParameter(parameterSymbol: ts.Symbol, depth: number, parent: string, jsdocParamTag?: ts.JSDocTagInfo) {
-            const type = checker.getTypeOfSymbolAtLocation(parameterSymbol, parameterSymbol.valueDeclaration);
-            if (depth < maxdepth && type.flags & ts.TypeFlags.Object) {
-                const objType = type as ts.ObjectType;
-                if (objType.objectFlags & ts.ObjectFlags.Interface) {
-                    objType.symbol.members?.forEach(element => {
-                        collectParameter(element, depth + 1, objType.symbol.name);
-                    });
-                    return;
+            if (parameterSymbol.valueDeclaration) {
+                const type = checker.getTypeOfSymbolAtLocation(parameterSymbol, parameterSymbol.valueDeclaration);
+                if (depth < maxdepth && type.flags & ts.TypeFlags.Object) {
+                    const objType = type as ts.ObjectType;
+                    if (objType.objectFlags & ts.ObjectFlags.Interface) {
+                        objType.symbol.members?.forEach(element => {
+                            collectParameter(element, depth + 1, objType.symbol.name);
+                        });
+                        return;
+                    }
+                }
+                const optional = parameterSymbol.flags & ts.SymbolFlags.Optional ? true : false;
+                const name = parameterSymbol.getName();
+                let comment = ts.displayPartsToString(parameterSymbol.getDocumentationComment(checker));
+                if (comment === "" && jsdocParamTag && jsdocParamTag.text && jsdocParamTag.text.length > 0) {
+                    comment = jsdocParamTag.text[0].text.substr(name.length + 1);
+                }
+                const typeString = checker.typeToString(type);
+                const tags = parameterSymbol.getJsDocTags().filter(t => t.name === "default");
+                let defaultValue = tags.length == 1 && tags[0].text && tags[0].text?.length > 0 ? tags[0].text[0].text : "";
+                if (typeString == "string" && defaultValue !== "" && defaultValue !== "undefined") {
+                    defaultValue = "\"" + defaultValue + "\"";
+                }
+
+                parameters.push(new Parameter(name, parent, optional, comment, typeString, defaultValue, depth));
+            }
+        }
+
+        if (symbol.valueDeclaration) {
+            let methodReturnType = "";
+            let methodComment = "";
+
+            methodComment = ts.displayPartsToString(symbol.getDocumentationComment(checker));
+            const tags = symbol.getJsDocTags();
+            const callType = checker.getTypeOfSymbolAtLocation(symbol, symbol.valueDeclaration);
+            const signatures = callType.getCallSignatures();
+            if (signatures.length === 1) {
+                const signature = signatures[0];
+                methodReturnType = checker.typeToString(signature.getReturnType(), undefined, ts.TypeFormatFlags.WriteArrayAsGenericType);
+                for (const parameter of signature.parameters) {
+                    const jsParamTags = tags.filter(t => t.name === "param" && t.text && t.text[0].text.startsWith(parameter.getName()));
+                    collectParameter(parameter, 1, "", jsParamTags.length === 1 ? jsParamTags[0] : undefined);
                 }
             }
 
-            const optional = parameterSymbol.flags & ts.SymbolFlags.Optional ? true : false;
-            const name = parameterSymbol.getName();
-            let comment = ts.displayPartsToString(parameterSymbol.getDocumentationComment(checker));
-            if (comment === "" && jsdocParamTag && jsdocParamTag.text) {
-                comment = jsdocParamTag.text.substr(name.length + 1);
-            }
-            const typeString = checker.typeToString(type);
-            const tags = parameterSymbol.getJsDocTags().filter(t => t.name === "default");
-            let defaultValue = tags.length == 1 && tags[0].text ? tags[0].text : "";
-            if (typeString == "string" && defaultValue !== "" && defaultValue !== "undefined") {
-                defaultValue = "\"" + defaultValue + "\"";
-            }
-
-            parameters.push(new Parameter(name, parent, optional, comment, typeString, defaultValue, depth));
+            return new Method(methodName, optional, methodReturnType, methodComment, parameters);
         }
-
-        let methodReturnType = "";
-        let methodComment = "";
-
-        methodComment = ts.displayPartsToString(symbol.getDocumentationComment(checker));
-        const tags = symbol.getJsDocTags();
-        const callType = checker.getTypeOfSymbolAtLocation(symbol, symbol.valueDeclaration);
-        const signatures = callType.getCallSignatures();
-        if (signatures.length === 1) {
-            const signature = signatures[0];
-            methodReturnType = checker.typeToString(signature.getReturnType(), undefined, ts.TypeFormatFlags.WriteArrayAsGenericType);
-            for (const parameter of signature.parameters) {
-                const jsParamTags = tags.filter(t => t.name === "param" && t.text && t.text.startsWith(parameter.getName()));
-                collectParameter(parameter, 1, "", jsParamTags.length === 1 ? jsParamTags[0] : undefined);
-            }
-        }
-
-        return new Method(methodName, optional, methodReturnType, methodComment, parameters);
     }
 
     function stripPromise(returnType: string) {

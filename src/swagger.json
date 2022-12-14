@@ -31,6 +31,12 @@
 					"products": {
 						"$ref": "#/components/schemas/Products"
 					},
+					"lines": {
+						"items": {
+							"$ref": "#/components/schemas/Line"
+						},
+						"type": "array"
+					},
 					"isMeta": {
 						"type": "boolean"
 					},
@@ -46,12 +52,39 @@
 					},
 					"reisezentrumOpeningHours": {
 						"$ref": "#/components/schemas/ReisezentrumOpeningHours"
+					},
+					"stops": {
+						"items": {
+							"anyOf": [
+								{
+									"$ref": "#/components/schemas/Station"
+								},
+								{
+									"$ref": "#/components/schemas/Stop"
+								},
+								{
+									"$ref": "#/components/schemas/Location"
+								}
+							]
+						},
+						"type": "array"
+					},
+					"entrances": {
+						"items": {
+							"$ref": "#/components/schemas/Location"
+						},
+						"type": "array"
+					},
+					"transitAuthority": {
+						"type": "string"
+					},
+					"distance": {
+						"type": "number",
+						"format": "double"
 					}
 				},
 				"required": [
-					"type",
-					"id",
-					"name"
+					"type"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -89,6 +122,10 @@
 					"altitude": {
 						"type": "number",
 						"format": "double"
+					},
+					"distance": {
+						"type": "number",
+						"format": "double"
 					}
 				},
 				"required": [
@@ -104,47 +141,6 @@
 				"additionalProperties": {
 					"type": "boolean"
 				}
-			},
-			"Facilities": {
-				"properties": {},
-				"type": "object",
-				"additionalProperties": {
-					"anyOf": [
-						{
-							"type": "string"
-						},
-						{
-							"type": "boolean"
-						}
-					]
-				}
-			},
-			"ReisezentrumOpeningHours": {
-				"properties": {
-					"Mo": {
-						"type": "string"
-					},
-					"Di": {
-						"type": "string"
-					},
-					"Mi": {
-						"type": "string"
-					},
-					"Do": {
-						"type": "string"
-					},
-					"Fr": {
-						"type": "string"
-					},
-					"Sa": {
-						"type": "string"
-					},
-					"So": {
-						"type": "string"
-					}
-				},
-				"type": "object",
-				"additionalProperties": false
 			},
 			"Operator": {
 				"properties": {
@@ -201,70 +197,17 @@
 						"type": "boolean"
 					},
 					"mode": {
-						"anyOf": [
-							{
-								"type": "string",
-								"enum": [
-									"train"
-								],
-								"nullable": false
-							},
-							{
-								"type": "string",
-								"enum": [
-									"bus"
-								],
-								"nullable": false
-							},
-							{
-								"type": "string",
-								"enum": [
-									"watercraft"
-								],
-								"nullable": false
-							},
-							{
-								"type": "string",
-								"enum": [
-									"taxi"
-								],
-								"nullable": false
-							},
-							{
-								"type": "string",
-								"enum": [
-									"gondola"
-								],
-								"nullable": false
-							},
-							{
-								"type": "string",
-								"enum": [
-									"aircraft"
-								],
-								"nullable": false
-							},
-							{
-								"type": "string",
-								"enum": [
-									"car"
-								],
-								"nullable": false
-							},
-							{
-								"type": "string",
-								"enum": [
-									"bicycle"
-								],
-								"nullable": false
-							},
-							{
-								"type": "string",
-								"enum": [
-									"walking"
-								],
-								"nullable": false
-							}
+						"type": "string",
+						"enum": [
+							"train",
+							"bus",
+							"watercraft",
+							"taxi",
+							"gondola",
+							"aircraft",
+							"car",
+							"bicycle",
+							"walking"
 						]
 					},
 					"routes": {
@@ -292,24 +235,71 @@
 					},
 					"symbol": {
 						"type": "string"
+					},
+					"directions": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"productName": {
+						"type": "string"
 					}
 				},
 				"required": [
-					"type",
-					"mode"
+					"type"
 				],
 				"type": "object",
 				"additionalProperties": false
 			},
-			"Ids": {
+			"Facilities": {
+				"properties": {},
+				"type": "object",
+				"additionalProperties": {
+					"anyOf": [
+						{
+							"type": "string"
+						},
+						{
+							"type": "boolean"
+						}
+					]
+				}
+			},
+			"ReisezentrumOpeningHours": {
 				"properties": {
-					"dhid": {
-						"type": "string",
-						"description": "DELFI Haltestellen ID"
+					"Mo": {
+						"type": "string"
+					},
+					"Di": {
+						"type": "string"
+					},
+					"Mi": {
+						"type": "string"
+					},
+					"Do": {
+						"type": "string"
+					},
+					"Fr": {
+						"type": "string"
+					},
+					"Sa": {
+						"type": "string"
+					},
+					"So": {
+						"type": "string"
 					}
 				},
 				"type": "object",
 				"additionalProperties": false
+			},
+			"Ids": {
+				"description": "Ids of a Stop, i.e. dhid as 'DELFI Haltestellen ID'",
+				"properties": {},
+				"type": "object",
+				"additionalProperties": {
+					"type": "string"
+				}
 			},
 			"Stop": {
 				"description": "A stop is a single small point or structure at which vehicles stop.\nA stop always belongs to a station. It may for example be a sign, a basic shelter or a railway platform.",
@@ -327,11 +317,11 @@
 					"name": {
 						"type": "string"
 					},
-					"station": {
-						"$ref": "#/components/schemas/Station"
-					},
 					"location": {
 						"$ref": "#/components/schemas/Location"
+					},
+					"station": {
+						"$ref": "#/components/schemas/Station"
 					},
 					"products": {
 						"$ref": "#/components/schemas/Products"
@@ -353,13 +343,23 @@
 					},
 					"loadFactor": {
 						"type": "string"
+					},
+					"entrances": {
+						"items": {
+							"$ref": "#/components/schemas/Location"
+						},
+						"type": "array"
+					},
+					"transitAuthority": {
+						"type": "string"
+					},
+					"distance": {
+						"type": "number",
+						"format": "double"
 					}
 				},
 				"required": [
-					"type",
-					"id",
-					"name",
-					"products"
+					"type"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -369,9 +369,14 @@
 					"type": {
 						"type": "string",
 						"enum": [
-							"hint"
-						],
-						"nullable": false
+							"hint",
+							"status",
+							"foreign-id",
+							"local-fare-zone",
+							"stop-website",
+							"stop-dhid",
+							"transit-authority"
+						]
 					},
 					"code": {
 						"type": "string"
@@ -392,6 +397,287 @@
 				],
 				"type": "object",
 				"additionalProperties": false
+			},
+			"Status": {
+				"properties": {
+					"type": {
+						"type": "string",
+						"enum": [
+							"hint",
+							"status",
+							"foreign-id",
+							"local-fare-zone",
+							"stop-website",
+							"stop-dhid",
+							"transit-authority"
+						]
+					},
+					"code": {
+						"type": "string"
+					},
+					"summary": {
+						"type": "string"
+					},
+					"text": {
+						"type": "string"
+					},
+					"tripId": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"type",
+					"text"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"IcoCrd": {
+				"properties": {
+					"x": {
+						"type": "number",
+						"format": "double"
+					},
+					"y": {
+						"type": "number",
+						"format": "double"
+					},
+					"type": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"x",
+					"y"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"Edge": {
+				"properties": {
+					"fromLocation": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/Station"
+							},
+							{
+								"$ref": "#/components/schemas/Stop"
+							},
+							{
+								"$ref": "#/components/schemas/Location"
+							}
+						]
+					},
+					"toLocation": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/Station"
+							},
+							{
+								"$ref": "#/components/schemas/Stop"
+							},
+							{
+								"$ref": "#/components/schemas/Location"
+							}
+						]
+					},
+					"dir": {
+						"type": "number",
+						"format": "double"
+					},
+					"icoCrd": {
+						"$ref": "#/components/schemas/IcoCrd"
+					}
+				},
+				"type": "object",
+				"additionalProperties": false
+			},
+			"Event": {
+				"properties": {
+					"fromLocation": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/Station"
+							},
+							{
+								"$ref": "#/components/schemas/Stop"
+							},
+							{
+								"$ref": "#/components/schemas/Location"
+							}
+						]
+					},
+					"toLocation": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/Station"
+							},
+							{
+								"$ref": "#/components/schemas/Stop"
+							},
+							{
+								"$ref": "#/components/schemas/Location"
+							}
+						]
+					},
+					"start": {
+						"type": "string"
+					},
+					"end": {
+						"type": "string"
+					},
+					"sections": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					}
+				},
+				"type": "object",
+				"additionalProperties": false
+			},
+			"Warning": {
+				"properties": {
+					"type": {
+						"type": "string",
+						"enum": [
+							"status",
+							"warning"
+						]
+					},
+					"id": {
+						"type": "string"
+					},
+					"summary": {
+						"type": "string"
+					},
+					"text": {
+						"type": "string"
+					},
+					"category": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "number",
+								"format": "double"
+							}
+						]
+					},
+					"priority": {
+						"type": "number",
+						"format": "double"
+					},
+					"products": {
+						"$ref": "#/components/schemas/Products"
+					},
+					"edges": {
+						"items": {
+							"$ref": "#/components/schemas/Edge"
+						},
+						"type": "array"
+					},
+					"events": {
+						"items": {
+							"$ref": "#/components/schemas/Event"
+						},
+						"type": "array"
+					},
+					"validFrom": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "number",
+								"format": "double"
+							}
+						]
+					},
+					"validUntil": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "number",
+								"format": "double"
+							}
+						]
+					},
+					"modified": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "number",
+								"format": "double"
+							}
+						]
+					},
+					"company": {
+						"type": "string"
+					},
+					"categories": {
+						"items": {
+							"type": "number",
+							"format": "double"
+						},
+						"type": "array"
+					},
+					"affectedLines": {
+						"items": {
+							"$ref": "#/components/schemas/Line"
+						},
+						"type": "array"
+					},
+					"fromStops": {
+						"items": {
+							"anyOf": [
+								{
+									"$ref": "#/components/schemas/Station"
+								},
+								{
+									"$ref": "#/components/schemas/Stop"
+								},
+								{
+									"$ref": "#/components/schemas/Location"
+								}
+							]
+						},
+						"type": "array"
+					},
+					"toStops": {
+						"items": {
+							"anyOf": [
+								{
+									"$ref": "#/components/schemas/Station"
+								},
+								{
+									"$ref": "#/components/schemas/Stop"
+								},
+								{
+									"$ref": "#/components/schemas/Location"
+								}
+							]
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"type"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"PrognosisType": {
+				"type": "string",
+				"enum": [
+					"prognosed",
+					"calculated"
+				]
 			},
 			"StopOver": {
 				"description": "A stopover represents a vehicle stopping at a stop/station at a specific time.",
@@ -414,10 +700,16 @@
 						"type": "number",
 						"format": "double"
 					},
+					"prognosedDeparture": {
+						"type": "string"
+					},
 					"plannedDeparture": {
 						"type": "string"
 					},
 					"departurePlatform": {
+						"type": "string"
+					},
+					"prognosedDeparturePlatform": {
 						"type": "string"
 					},
 					"plannedDeparturePlatform": {
@@ -431,10 +723,16 @@
 						"type": "number",
 						"format": "double"
 					},
+					"prognosedArrival": {
+						"type": "string"
+					},
 					"plannedArrival": {
 						"type": "string"
 					},
 					"arrivalPlatform": {
+						"type": "string"
+					},
+					"prognosedArrivalPlatform": {
 						"type": "string"
 					},
 					"plannedArrivalPlatform": {
@@ -442,14 +740,33 @@
 					},
 					"remarks": {
 						"items": {
-							"$ref": "#/components/schemas/Hint"
+							"anyOf": [
+								{
+									"$ref": "#/components/schemas/Hint"
+								},
+								{
+									"$ref": "#/components/schemas/Status"
+								},
+								{
+									"$ref": "#/components/schemas/Warning"
+								}
+							]
 						},
 						"type": "array"
+					},
+					"passBy": {
+						"type": "boolean"
+					},
+					"cancelled": {
+						"type": "boolean"
+					},
+					"departurePrognosisType": {
+						"$ref": "#/components/schemas/PrognosisType"
+					},
+					"arrivalPrognosisType": {
+						"$ref": "#/components/schemas/PrognosisType"
 					}
 				},
-				"required": [
-					"stop"
-				],
 				"type": "object",
 				"additionalProperties": false
 			},
@@ -491,58 +808,36 @@
 				"type": "object",
 				"additionalProperties": false
 			},
-			"Alternative": {
+			"Frame": {
 				"properties": {
-					"tripId": {
-						"type": "string"
-					},
-					"direction": {
-						"type": "string"
-					},
-					"line": {
-						"$ref": "#/components/schemas/Line"
-					},
-					"stop": {
+					"origin": {
 						"anyOf": [
 							{
-								"$ref": "#/components/schemas/Station"
+								"$ref": "#/components/schemas/Stop"
 							},
 							{
-								"$ref": "#/components/schemas/Stop"
+								"$ref": "#/components/schemas/Location"
 							}
 						]
 					},
-					"plannedWhen": {
-						"type": "string"
+					"destination": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/Stop"
+							},
+							{
+								"$ref": "#/components/schemas/Location"
+							}
+						]
 					},
-					"when": {
-						"type": "string"
-					},
-					"delay": {
+					"t": {
 						"type": "number",
 						"format": "double"
-					},
-					"platform": {
-						"type": "string"
-					},
-					"plannedPlatform": {
-						"type": "string"
-					},
-					"remarks": {
-						"items": {
-							"$ref": "#/components/schemas/Hint"
-						},
-						"type": "array"
-					},
-					"cancelled": {
-						"type": "boolean"
-					},
-					"loadFactor": {
-						"type": "string"
 					}
 				},
 				"required": [
-					"tripId"
+					"origin",
+					"destination"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -552,7 +847,7 @@
 					"type": {
 						"type": "string",
 						"enum": [
-							"point"
+							"Point"
 						],
 						"nullable": false
 					},
@@ -587,6 +882,13 @@
 							},
 							{
 								"$ref": "#/components/schemas/Stop"
+							},
+							{
+								"$ref": "#/components/schemas/Location"
+							},
+							{
+								"properties": {},
+								"type": "object"
 							}
 						]
 					},
@@ -596,6 +898,7 @@
 				},
 				"required": [
 					"type",
+					"properties",
 					"geometry"
 				],
 				"type": "object",
@@ -624,6 +927,137 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"Alternative": {
+				"properties": {
+					"tripId": {
+						"type": "string"
+					},
+					"direction": {
+						"type": "string"
+					},
+					"location": {
+						"$ref": "#/components/schemas/Location"
+					},
+					"line": {
+						"$ref": "#/components/schemas/Line"
+					},
+					"stop": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/Station"
+							},
+							{
+								"$ref": "#/components/schemas/Stop"
+							}
+						]
+					},
+					"when": {
+						"type": "string"
+					},
+					"plannedWhen": {
+						"type": "string"
+					},
+					"prognosedWhen": {
+						"type": "string"
+					},
+					"delay": {
+						"type": "number",
+						"format": "double"
+					},
+					"platform": {
+						"type": "string"
+					},
+					"plannedPlatform": {
+						"type": "string"
+					},
+					"prognosedPlatform": {
+						"type": "string"
+					},
+					"remarks": {
+						"items": {
+							"anyOf": [
+								{
+									"$ref": "#/components/schemas/Hint"
+								},
+								{
+									"$ref": "#/components/schemas/Status"
+								},
+								{
+									"$ref": "#/components/schemas/Warning"
+								}
+							]
+						},
+						"type": "array"
+					},
+					"cancelled": {
+						"type": "boolean"
+					},
+					"loadFactor": {
+						"type": "string"
+					},
+					"provenance": {
+						"type": "string"
+					},
+					"previousStopovers": {
+						"items": {
+							"$ref": "#/components/schemas/StopOver"
+						},
+						"type": "array"
+					},
+					"nextStopovers": {
+						"items": {
+							"$ref": "#/components/schemas/StopOver"
+						},
+						"type": "array"
+					},
+					"frames": {
+						"items": {
+							"$ref": "#/components/schemas/Frame"
+						},
+						"type": "array"
+					},
+					"polyline": {
+						"$ref": "#/components/schemas/FeatureCollection"
+					},
+					"currentTripPosition": {
+						"$ref": "#/components/schemas/Location"
+					},
+					"origin": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/Station"
+							},
+							{
+								"$ref": "#/components/schemas/Stop"
+							},
+							{
+								"$ref": "#/components/schemas/Location"
+							}
+						]
+					},
+					"destination": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/Station"
+							},
+							{
+								"$ref": "#/components/schemas/Stop"
+							},
+							{
+								"$ref": "#/components/schemas/Location"
+							}
+						]
+					},
+					"prognosisType": {
+						"$ref": "#/components/schemas/PrognosisType"
+					}
+				},
+				"required": [
+					"tripId"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"Leg": {
 				"description": "Leg of journey",
 				"properties": {
@@ -637,6 +1071,9 @@
 							},
 							{
 								"$ref": "#/components/schemas/Stop"
+							},
+							{
+								"$ref": "#/components/schemas/Location"
 							}
 						]
 					},
@@ -647,6 +1084,9 @@
 							},
 							{
 								"$ref": "#/components/schemas/Stop"
+							},
+							{
+								"$ref": "#/components/schemas/Location"
 							}
 						]
 					},
@@ -656,11 +1096,17 @@
 					"plannedDeparture": {
 						"type": "string"
 					},
+					"prognosedArrival": {
+						"type": "string"
+					},
 					"departureDelay": {
 						"type": "number",
 						"format": "double"
 					},
 					"departurePlatform": {
+						"type": "string"
+					},
+					"prognosedDeparturePlatform": {
 						"type": "string"
 					},
 					"plannedDeparturePlatform": {
@@ -672,11 +1118,17 @@
 					"plannedArrival": {
 						"type": "string"
 					},
+					"prognosedDeparture": {
+						"type": "string"
+					},
 					"arrivalDelay": {
 						"type": "number",
 						"format": "double"
 					},
 					"arrivalPlatform": {
+						"type": "string"
+					},
+					"prognosedArrivalPlatform": {
 						"type": "string"
 					},
 					"plannedArrivalPlatform": {
@@ -741,17 +1193,33 @@
 					},
 					"remarks": {
 						"items": {
-							"$ref": "#/components/schemas/Hint"
+							"anyOf": [
+								{
+									"$ref": "#/components/schemas/Hint"
+								},
+								{
+									"$ref": "#/components/schemas/Status"
+								},
+								{
+									"$ref": "#/components/schemas/Warning"
+								}
+							]
 						},
 						"type": "array"
+					},
+					"currentLocation": {
+						"$ref": "#/components/schemas/Location"
+					},
+					"departurePrognosisType": {
+						"$ref": "#/components/schemas/PrognosisType"
+					},
+					"arrivalPrognosisType": {
+						"$ref": "#/components/schemas/PrognosisType"
+					},
+					"checkin": {
+						"type": "boolean"
 					}
 				},
-				"required": [
-					"origin",
-					"destination",
-					"plannedDeparture",
-					"plannedArrival"
-				],
 				"type": "object",
 				"additionalProperties": false
 			},
@@ -783,7 +1251,17 @@
 					},
 					"remarks": {
 						"items": {
-							"$ref": "#/components/schemas/Hint"
+							"anyOf": [
+								{
+									"$ref": "#/components/schemas/Hint"
+								},
+								{
+									"$ref": "#/components/schemas/Status"
+								},
+								{
+									"$ref": "#/components/schemas/Warning"
+								}
+							]
 						},
 						"type": "array"
 					},
@@ -806,6 +1284,10 @@
 			},
 			"Journeys": {
 				"properties": {
+					"realtimeDataUpdatedAt": {
+						"type": "number",
+						"format": "double"
+					},
 					"earlierRef": {
 						"type": "string"
 					},
@@ -819,54 +1301,84 @@
 						"type": "array"
 					}
 				},
-				"required": [
-					"journeys"
-				],
 				"type": "object",
 				"additionalProperties": false
 			},
 			"Trip": {
+				"description": "Trip – a vehicle stopping at a set of stops at specific times",
 				"properties": {
 					"id": {
 						"type": "string"
 					},
 					"origin": {
-						"$ref": "#/components/schemas/Stop"
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/Station"
+							},
+							{
+								"$ref": "#/components/schemas/Stop"
+							},
+							{
+								"$ref": "#/components/schemas/Location"
+							}
+						]
+					},
+					"destination": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/Station"
+							},
+							{
+								"$ref": "#/components/schemas/Stop"
+							},
+							{
+								"$ref": "#/components/schemas/Location"
+							}
+						]
 					},
 					"departure": {
-						"type": "string"
-					},
-					"departurePlatform": {
 						"type": "string"
 					},
 					"plannedDeparture": {
 						"type": "string"
 					},
-					"plannedDeparturePlatform": {
+					"prognosedArrival": {
 						"type": "string"
 					},
 					"departureDelay": {
 						"type": "number",
 						"format": "double"
 					},
-					"destination": {
-						"$ref": "#/components/schemas/Stop"
-					},
-					"arrival": {
+					"departurePlatform": {
 						"type": "string"
 					},
-					"arrivalPlatform": {
+					"prognosedDeparturePlatform": {
+						"type": "string"
+					},
+					"plannedDeparturePlatform": {
+						"type": "string"
+					},
+					"arrival": {
 						"type": "string"
 					},
 					"plannedArrival": {
 						"type": "string"
 					},
-					"plannedArrivalPlatform": {
+					"prognosedDeparture": {
 						"type": "string"
 					},
 					"arrivalDelay": {
 						"type": "number",
 						"format": "double"
+					},
+					"arrivalPlatform": {
+						"type": "string"
+					},
+					"prognosedArrivalPlatform": {
+						"type": "string"
+					},
+					"plannedArrivalPlatform": {
+						"type": "string"
 					},
 					"stopovers": {
 						"items": {
@@ -874,34 +1386,114 @@
 						},
 						"type": "array"
 					},
-					"remarks": {
-						"items": {
-							"$ref": "#/components/schemas/Hint"
-						},
-						"type": "array"
+					"schedule": {
+						"type": "number",
+						"format": "double"
 					},
-					"line": {
-						"$ref": "#/components/schemas/Line"
+					"price": {
+						"$ref": "#/components/schemas/Price"
+					},
+					"operator": {
+						"type": "number",
+						"format": "double"
 					},
 					"direction": {
 						"type": "string"
 					},
+					"line": {
+						"$ref": "#/components/schemas/Line"
+					},
 					"reachable": {
 						"type": "boolean"
 					},
+					"cancelled": {
+						"type": "boolean"
+					},
+					"walking": {
+						"type": "boolean"
+					},
+					"loadFactor": {
+						"type": "string"
+					},
+					"distance": {
+						"type": "number",
+						"format": "double"
+					},
+					"public": {
+						"type": "boolean"
+					},
+					"transfer": {
+						"type": "boolean"
+					},
+					"cycle": {
+						"$ref": "#/components/schemas/Cycle"
+					},
+					"alternatives": {
+						"items": {
+							"$ref": "#/components/schemas/Alternative"
+						},
+						"type": "array"
+					},
 					"polyline": {
 						"$ref": "#/components/schemas/FeatureCollection"
+					},
+					"remarks": {
+						"items": {
+							"anyOf": [
+								{
+									"$ref": "#/components/schemas/Hint"
+								},
+								{
+									"$ref": "#/components/schemas/Status"
+								},
+								{
+									"$ref": "#/components/schemas/Warning"
+								}
+							]
+						},
+						"type": "array"
+					},
+					"scheduledDays": {
+						"$ref": "#/components/schemas/ScheduledDays"
 					}
 				},
 				"required": [
-					"id",
-					"origin",
-					"departure",
-					"plannedDeparture",
-					"destination",
-					"arrival",
-					"plannedArrival",
-					"stopovers"
+					"id"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"TripWithRealtimeData": {
+				"properties": {
+					"realtimeDataUpdatedAt": {
+						"type": "number",
+						"format": "double"
+					},
+					"trip": {
+						"$ref": "#/components/schemas/Trip"
+					}
+				},
+				"required": [
+					"trip"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"Departures": {
+				"properties": {
+					"realtimeDataUpdatedAt": {
+						"type": "number",
+						"format": "double"
+					},
+					"departures": {
+						"items": {
+							"$ref": "#/components/schemas/Alternative"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"departures"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -920,6 +1512,9 @@
 								},
 								{
 									"$ref": "#/components/schemas/Stop"
+								},
+								{
+									"$ref": "#/components/schemas/Location"
 								}
 							]
 						},
@@ -933,36 +1528,21 @@
 				"type": "object",
 				"additionalProperties": false
 			},
-			"Frame": {
+			"DurationsWithRealtimeData": {
 				"properties": {
-					"origin": {
-						"anyOf": [
-							{
-								"$ref": "#/components/schemas/Stop"
-							},
-							{
-								"$ref": "#/components/schemas/Location"
-							}
-						]
-					},
-					"destination": {
-						"anyOf": [
-							{
-								"$ref": "#/components/schemas/Stop"
-							},
-							{
-								"$ref": "#/components/schemas/Location"
-							}
-						]
-					},
-					"t": {
+					"realtimeDataUpdatedAt": {
 						"type": "number",
 						"format": "double"
+					},
+					"reachable": {
+						"items": {
+							"$ref": "#/components/schemas/Duration"
+						},
+						"type": "array"
 					}
 				},
 				"required": [
-					"origin",
-					"destination"
+					"reachable"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -992,6 +1572,9 @@
 							"$ref": "#/components/schemas/Frame"
 						},
 						"type": "array"
+					},
+					"polyline": {
+						"$ref": "#/components/schemas/FeatureCollection"
 					}
 				},
 				"type": "object",
@@ -1229,7 +1812,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/Trip"
+									"$ref": "#/components/schemas/TripWithRealtimeData"
 								}
 							}
 						}
@@ -1239,18 +1822,9 @@
 				"security": [],
 				"parameters": [
 					{
-						"description": "trip id, see {@link Leg#tripId}",
+						"description": "trip id, see {@link Leg#tripId }",
 						"in": "query",
 						"name": "id",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					},
-					{
-						"description": "name",
-						"in": "query",
-						"name": "name",
 						"required": true,
 						"schema": {
 							"type": "string"
@@ -1328,10 +1902,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"items": {
-										"$ref": "#/components/schemas/Alternative"
-									},
-									"type": "array"
+									"$ref": "#/components/schemas/Departures"
 								}
 							}
 						}
@@ -1827,10 +2398,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"items": {
-										"$ref": "#/components/schemas/Duration"
-									},
-									"type": "array"
+									"$ref": "#/components/schemas/DurationsWithRealtimeData"
 								}
 							}
 						}
