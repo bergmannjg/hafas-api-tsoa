@@ -6,6 +6,120 @@
 		"requestBodies": {},
 		"responses": {},
 		"schemas": {
+			"ProductType": {
+				"description": "A ProductType relates to how a means of transport \"works\" in local context.\nExample: Even though S-Bahn and U-Bahn in Berlin are both trains, they have different operators, service patterns,\nstations and look different. Therefore, they are two distinct products subway and suburban.",
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"mode": {
+						"type": "string",
+						"enum": [
+							"train",
+							"bus",
+							"watercraft",
+							"taxi",
+							"gondola",
+							"aircraft",
+							"car",
+							"bicycle",
+							"walking"
+						]
+					},
+					"name": {
+						"type": "string"
+					},
+					"short": {
+						"type": "string"
+					},
+					"bitmasks": {
+						"items": {
+							"type": "number",
+							"format": "double"
+						},
+						"type": "array"
+					},
+					"default": {
+						"type": "boolean"
+					}
+				},
+				"required": [
+					"id",
+					"mode",
+					"name",
+					"short",
+					"bitmasks",
+					"default"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"Profile": {
+				"description": "A profile is a specific customisation for each endpoint.\nIt parses data from the API differently, add additional information, or enable non-default methods.",
+				"properties": {
+					"locale": {
+						"type": "string"
+					},
+					"timezone": {
+						"type": "string"
+					},
+					"endpoint": {
+						"type": "string"
+					},
+					"products": {
+						"items": {
+							"$ref": "#/components/schemas/ProductType"
+						},
+						"type": "array"
+					},
+					"trip": {
+						"type": "boolean"
+					},
+					"radar": {
+						"type": "boolean"
+					},
+					"refreshJourney": {
+						"type": "boolean"
+					},
+					"journeysFromTrip": {
+						"type": "boolean"
+					},
+					"reachableFrom": {
+						"type": "boolean"
+					},
+					"journeysWalkingSpeed": {
+						"type": "boolean"
+					},
+					"tripsByName": {
+						"type": "boolean"
+					},
+					"remarks": {
+						"type": "boolean"
+					},
+					"remarksGetPolyline": {
+						"type": "boolean"
+					},
+					"lines": {
+						"type": "boolean"
+					}
+				},
+				"required": [
+					"locale",
+					"timezone",
+					"endpoint",
+					"products"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ProfileId": {
+				"type": "string",
+				"enum": [
+					"db",
+					"bvg",
+					"oebb"
+				]
+			},
 			"Station": {
 				"description": "A station is a larger building or area that can be identified by a name.\nIt is usually represented by a single node on a public transport map.\nWhereas a stop usually specifies a location, a station often is a broader area\nthat may span across multiple levels or buildings.",
 				"properties": {
@@ -1498,6 +1612,22 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"LinesWithRealtimeData": {
+				"properties": {
+					"realtimeDataUpdatedAt": {
+						"type": "number",
+						"format": "double"
+					},
+					"lines": {
+						"items": {
+							"$ref": "#/components/schemas/Line"
+						},
+						"type": "array"
+					}
+				},
+				"type": "object",
+				"additionalProperties": false
+			},
 			"Duration": {
 				"properties": {
 					"duration": {
@@ -1579,6 +1709,22 @@
 				},
 				"type": "object",
 				"additionalProperties": false
+			},
+			"Radar": {
+				"properties": {
+					"realtimeDataUpdatedAt": {
+						"type": "number",
+						"format": "double"
+					},
+					"movements": {
+						"items": {
+							"$ref": "#/components/schemas/Movement"
+						},
+						"type": "array"
+					}
+				},
+				"type": "object",
+				"additionalProperties": false
 			}
 		},
 		"securitySchemes": {}
@@ -1593,7 +1739,37 @@
 	},
 	"openapi": "3.0.0",
 	"paths": {
-		"/hafas/journeys": {
+		"/hafas/{profileId}/profile": {
+			"get": {
+				"operationId": "GetProducts",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Profile"
+								}
+							}
+						}
+					}
+				},
+				"description": "Retrieves profile",
+				"security": [],
+				"parameters": [
+					{
+						"description": "endpoint profile id",
+						"in": "path",
+						"name": "profileId",
+						"required": true,
+						"schema": {
+							"$ref": "#/components/schemas/ProfileId"
+						}
+					}
+				]
+			}
+		},
+		"/hafas/{profileId}/journeys": {
 			"get": {
 				"operationId": "Getjourneys",
 				"responses": {
@@ -1612,7 +1788,15 @@
 				"security": [],
 				"parameters": [
 					{
-						"description": "uid of station",
+						"description": "endpoint profile id",
+						"in": "path",
+						"name": "profileId",
+						"required": true,
+						"schema": {
+							"$ref": "#/components/schemas/ProfileId"
+						}
+					},
+					{
 						"in": "query",
 						"name": "from",
 						"required": true,
@@ -1621,7 +1805,6 @@
 						}
 					},
 					{
-						"description": "uid of station",
 						"in": "query",
 						"name": "to",
 						"required": true,
@@ -1696,7 +1879,6 @@
 						"name": "accessibility",
 						"required": false,
 						"schema": {
-							"default": "none",
 							"type": "string"
 						}
 					},
@@ -1803,7 +1985,7 @@
 				]
 			}
 		},
-		"/hafas/trip": {
+		"/hafas/{profileId}/trip": {
 			"get": {
 				"operationId": "Gettrip",
 				"responses": {
@@ -1822,7 +2004,15 @@
 				"security": [],
 				"parameters": [
 					{
-						"description": "trip id, see {@link Leg#tripId }",
+						"description": "endpoint profile id",
+						"in": "path",
+						"name": "profileId",
+						"required": true,
+						"schema": {
+							"$ref": "#/components/schemas/ProfileId"
+						}
+					},
+					{
 						"in": "query",
 						"name": "id",
 						"required": true,
@@ -1881,6 +2071,16 @@
 						}
 					},
 					{
+						"description": "parse which days each journey is valid on",
+						"in": "query",
+						"name": "scheduledDays",
+						"required": false,
+						"schema": {
+							"default": false,
+							"type": "boolean"
+						}
+					},
+					{
 						"description": "Language of the results",
 						"in": "query",
 						"name": "language",
@@ -1893,7 +2093,7 @@
 				]
 			}
 		},
-		"/hafas/departures": {
+		"/hafas/{profileId}/departures": {
 			"get": {
 				"operationId": "Getdepartures",
 				"responses": {
@@ -1912,7 +2112,15 @@
 				"security": [],
 				"parameters": [
 					{
-						"description": "uid of station",
+						"description": "endpoint profile id",
+						"in": "path",
+						"name": "profileId",
+						"required": true,
+						"schema": {
+							"$ref": "#/components/schemas/ProfileId"
+						}
+					},
+					{
 						"in": "query",
 						"name": "station",
 						"required": true,
@@ -1933,6 +2141,15 @@
 						"description": "only show departures heading to this station",
 						"in": "query",
 						"name": "direction",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"description": "filter by line ID",
+						"in": "query",
+						"name": "line",
 						"required": false,
 						"schema": {
 							"type": "string"
@@ -2001,23 +2218,12 @@
 						}
 					},
 					{
-						"description": "fetch & parse previous/next stopovers?",
+						"description": "products",
 						"in": "query",
-						"name": "stopovers",
+						"name": "products",
 						"required": false,
 						"schema": {
-							"default": false,
-							"type": "boolean"
-						}
-					},
-					{
-						"description": "departures at related stations",
-						"in": "query",
-						"name": "includeRelatedStations",
-						"required": false,
-						"schema": {
-							"default": false,
-							"type": "boolean"
+							"type": "string"
 						}
 					},
 					{
@@ -2033,7 +2239,7 @@
 				]
 			}
 		},
-		"/hafas/locations": {
+		"/hafas/{profileId}/locations": {
 			"get": {
 				"operationId": "Getlocations",
 				"responses": {
@@ -2065,7 +2271,15 @@
 				"security": [],
 				"parameters": [
 					{
-						"description": "name of station",
+						"description": "endpoint profile id",
+						"in": "path",
+						"name": "profileId",
+						"required": true,
+						"schema": {
+							"$ref": "#/components/schemas/ProfileId"
+						}
+					},
+					{
 						"in": "query",
 						"name": "name",
 						"required": true,
@@ -2167,7 +2381,7 @@
 				]
 			}
 		},
-		"/hafas/stop": {
+		"/hafas/{profileId}/stop": {
 			"get": {
 				"operationId": "Getstop",
 				"responses": {
@@ -2196,7 +2410,15 @@
 				"security": [],
 				"parameters": [
 					{
-						"description": "uid of station",
+						"description": "endpoint profile id",
+						"in": "path",
+						"name": "profileId",
+						"required": true,
+						"schema": {
+							"$ref": "#/components/schemas/ProfileId"
+						}
+					},
+					{
 						"in": "query",
 						"name": "id",
 						"required": true,
@@ -2257,7 +2479,55 @@
 				]
 			}
 		},
-		"/hafas/nearby": {
+		"/hafas/{profileId}/lines": {
+			"get": {
+				"operationId": "Getlines",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/LinesWithRealtimeData"
+								}
+							}
+						}
+					}
+				},
+				"description": "Fetches all lines known to the HAFAS endpoint",
+				"security": [],
+				"parameters": [
+					{
+						"description": "endpoint profile id",
+						"in": "path",
+						"name": "profileId",
+						"required": true,
+						"schema": {
+							"$ref": "#/components/schemas/ProfileId"
+						}
+					},
+					{
+						"in": "query",
+						"name": "query",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"description": "Language of the results",
+						"in": "query",
+						"name": "language",
+						"required": false,
+						"schema": {
+							"default": "en",
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/hafas/{profileId}/nearby": {
 			"get": {
 				"operationId": "Getnearby",
 				"responses": {
@@ -2288,6 +2558,15 @@
 				"description": "Retrieves nearby stops from location",
 				"security": [],
 				"parameters": [
+					{
+						"description": "endpoint profile id",
+						"in": "path",
+						"name": "profileId",
+						"required": true,
+						"schema": {
+							"$ref": "#/components/schemas/ProfileId"
+						}
+					},
 					{
 						"in": "query",
 						"name": "longitude",
@@ -2347,6 +2626,15 @@
 						}
 					},
 					{
+						"description": "products",
+						"in": "query",
+						"name": "products",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
 						"description": "parse & expose sub-stops of stations?",
 						"in": "query",
 						"name": "subStops",
@@ -2389,7 +2677,7 @@
 				]
 			}
 		},
-		"/hafas/reachableFrom": {
+		"/hafas/{profileId}/reachableFrom": {
 			"get": {
 				"operationId": "GetreachableFrom",
 				"responses": {
@@ -2407,6 +2695,15 @@
 				"description": "Retrieves stations reachable within a certain time from a location",
 				"security": [],
 				"parameters": [
+					{
+						"description": "endpoint profile id",
+						"in": "path",
+						"name": "profileId",
+						"required": true,
+						"schema": {
+							"$ref": "#/components/schemas/ProfileId"
+						}
+					},
 					{
 						"in": "query",
 						"name": "address",
@@ -2483,11 +2780,21 @@
 							"default": true,
 							"type": "boolean"
 						}
+					},
+					{
+						"description": "return leg shapes?",
+						"in": "query",
+						"name": "polylines",
+						"required": false,
+						"schema": {
+							"default": false,
+							"type": "boolean"
+						}
 					}
 				]
 			}
 		},
-		"/hafas/radar": {
+		"/hafas/{profileId}/radar": {
 			"get": {
 				"operationId": "Getradar",
 				"responses": {
@@ -2496,10 +2803,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"items": {
-										"$ref": "#/components/schemas/Movement"
-									},
-									"type": "array"
+									"$ref": "#/components/schemas/Radar"
 								}
 							}
 						}
@@ -2508,6 +2812,15 @@
 				"description": "Retrieves all vehicles currently in an area.",
 				"security": [],
 				"parameters": [
+					{
+						"description": "endpoint profile id",
+						"in": "path",
+						"name": "profileId",
+						"required": true,
+						"schema": {
+							"$ref": "#/components/schemas/ProfileId"
+						}
+					},
 					{
 						"in": "query",
 						"name": "north",

@@ -16,14 +16,15 @@ if [ $(ls xx0* | wc -l) != 3 ]; then
 fi
 
 echo "  // beginOfRange" > xx01
-node build/generator/index.js --file ./types/hafas-client/index.d.ts --method journeys -x JourneysOptions.arrival JourneysOptions.products JourneysOptions.earlierThan JourneysOptions.laterThan JourneysOptions.when >> xx01
-node build/generator/index.js --file ./types/hafas-client/index.d.ts --method trip  >> xx01
-node build/generator/index.js --file ./types/hafas-client/index.d.ts --method departures  >> xx01
-node build/generator/index.js --file ./types/hafas-client/index.d.ts --method locations >> xx01
-node build/generator/index.js --file ./types/hafas-client/index.d.ts --method stop  >> xx01
-node build/generator/index.js --file ./types/hafas-client/index.d.ts --method nearby -x Location.type Location.id Location.name Location.poi Location.address Location.altitude Location.distance >> xx01
-node build/generator/index.js --file ./types/hafas-client/index.d.ts --method reachableFrom -x Location.type Location.id Location.name Location.poi Location.altitude ReachableFromOptions.when ReachableFromOptions.products >> xx01
-node build/generator/index.js --file ./types/hafas-client/index.d.ts --method radar -x RadarOptions.products >> xx01
+node build/generator/index.js --file ./src/hafas/hafas-client-types.ts --method journeys -x JourneysOptions.arrival JourneysOptions.products JourneysOptions.earlierThan JourneysOptions.laterThan JourneysOptions.when JourneysOptions.firstClass JourneysOptions.age JourneysOptions.loyaltyCard >> xx01
+node build/generator/index.js --file ./src/hafas/hafas-client-types.ts --method trip  >> xx01
+node build/generator/index.js --file ./src/hafas/hafas-client-types.ts --method departures -x DeparturesArrivalsOptions.stopovers DeparturesArrivalsOptions.includeRelatedStations >> xx01
+node build/generator/index.js --file ./src/hafas/hafas-client-types.ts --method locations >> xx01
+node build/generator/index.js --file ./src/hafas/hafas-client-types.ts --method stop  >> xx01
+node build/generator/index.js --file ./src/hafas/hafas-client-types.ts --method lines  >> xx01
+node build/generator/index.js --file ./src/hafas/hafas-client-types.ts --method nearby -x Location.type Location.id Location.name Location.poi Location.address Location.altitude Location.distance >> xx01
+node build/generator/index.js --file ./src/hafas/hafas-client-types.ts --method reachableFrom -x Location.type Location.id Location.name Location.poi Location.altitude ReachableFromOptions.when ReachableFromOptions.products >> xx01
+node build/generator/index.js --file ./src/hafas/hafas-client-types.ts --method radar -x RadarOptions.products >> xx01
 
 cat xx00 xx01 xx02 > src/hafas/hafasController.ts
 

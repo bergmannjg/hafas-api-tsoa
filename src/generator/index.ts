@@ -1,5 +1,5 @@
 // Generate controller methods from a TypeScript declaration file
-import * as ts from "typescript";
+import ts from "typescript";
 import yargs from 'yargs';
 
 const argv = yargs(process.argv.slice(2)).options({
@@ -181,6 +181,10 @@ function extract(file: string, methodName: string, excludes: string[], maxdepth:
         else method.returnType = "Promise<" + method.returnType + ">";
     }
 
+    function capitalizeFirstLetter(s: string) {
+        return s.charAt(0).toUpperCase() + s.slice(1);
+    }
+
     function emitControllerMethod(method: Method, excludes: string[]) {
         const errors = method.parameters.filter(p => excludes.find(x => x === p.path() && !p.exclusionPosible()));
         if (errors.length) {
@@ -207,21 +211,23 @@ function extract(file: string, methodName: string, excludes: string[], maxdepth:
         const fparameters = method.parameters.filter(p => !excludes.find(x => x === p.path()));
         console.log("/**");
         console.log("* %s", method.comment);
+        console.log("* @param profileId endpoint profile id");
         for (const parameter of fparameters) {
             console.log("* @param %s %s", parameter.name, parameter.comment);
         }
         console.log("*/");
-        console.log("@Get(\"%s\")", method.methodName);
+        console.log("@Get(\"{profileId}/%s\")", method.methodName);
         console.log("public async get%s(", method.methodName);
+        console.log("  profileId: ProfileId,");
         for (const parameter of fparameters) {
             if (parameter.defaultValue) {
-                console.log("@Query() %s = %s,", parameter.name, parameter.defaultValue);
+                console.log("  @Query() %s = %s,", parameter.name, parameter.defaultValue);
             } else {
-                console.log("@Query() %s: %s,", parameter.name, parameter.typeName);
+                console.log("  @Query() %s: %s,", parameter.name, parameter.typeName);
             }
         }
         console.log("): %s {", method.returnType);
-        console.log("const client = this.clientFactory();");
+        console.log("const client = this.clientFactory(profileId);");
         let parametersString = "";
         let currentDepth = 1;
         let currentParent = "";

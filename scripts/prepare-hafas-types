@@ -12,7 +12,10 @@ LOCALFILE='src/hafas/hafas-client-types.ts'
 
 echo "// This file is generated with '$0'. Do not modify." > $LOCALFILE
 
+echo "export type ProfileId = 'db' | 'bvg' | 'oebb'"  >> $LOCALFILE
+
 sed '/^\/\//d
     /createClient/d
     /: object;/d
+    s/default none/default undefined/
     s/ReadonlyArray/Array/' $INDEXFILE >> $LOCALFILE

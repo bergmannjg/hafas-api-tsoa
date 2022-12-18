@@ -1,4 +1,5 @@
 // This file is generated with './scripts/prepare-hafas-types'. Do not modify.
+export type ProfileId = 'db' | 'bvg' | 'oebb'
 
 /**
  * A ProductType relates to how a means of transport "works" in local context.
@@ -517,7 +518,7 @@ export interface JourneysOptions {
     transferTime?: number;
     /**
      * 'none', 'partial' or 'complete'
-     *  @default none
+     *  @default undefined
      */
     accessibility?: string;
     /**
@@ -578,12 +579,12 @@ export interface JourneysOptions {
     firstClass?: boolean;
     /**
      * age
-     * @default none
+     * @default undefined
      */
     age?: number;
     /**
      *  LoyaltyCard
-     *  @default none
+     *  @default undefined
      */
     loyaltyCard?: LoyaltyCard;
     /**

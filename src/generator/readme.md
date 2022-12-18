@@ -17,10 +17,10 @@ If a parameter of the method has an interface type, the interface properties are
 The program
 
 ```
-node build/generator/index.js --file ./types/hafas-client/index.d.ts --method locations
+node build/generator/index.js --file ./src/hafas/hafas-client-types.ts --method locations
 ```
 
-generates the following controller method for the **locations** method in [HafasClient](../../types/hafas-client/index.d.ts) api.
+generates the following controller method for the **locations** method in [HafasClient](../hafas/hafas-client-types.ts) api.
 
 The properties of type **LocationsOptions** are transferred to query parameters.
 

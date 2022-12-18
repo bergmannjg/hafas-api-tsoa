@@ -10,6 +10,45 @@ import * as express from 'express';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
 const models: TsoaRoute.Models = {
+    "ProductType": {
+        "dataType": "refObject",
+        "properties": {
+            "id": {"dataType":"string","required":true},
+            "mode": {"dataType":"union","subSchemas":[{"dataType":"enum","enums":["train"]},{"dataType":"enum","enums":["bus"]},{"dataType":"enum","enums":["watercraft"]},{"dataType":"enum","enums":["taxi"]},{"dataType":"enum","enums":["gondola"]},{"dataType":"enum","enums":["aircraft"]},{"dataType":"enum","enums":["car"]},{"dataType":"enum","enums":["bicycle"]},{"dataType":"enum","enums":["walking"]}],"required":true},
+            "name": {"dataType":"string","required":true},
+            "short": {"dataType":"string","required":true},
+            "bitmasks": {"dataType":"array","array":{"dataType":"double"},"required":true},
+            "default": {"dataType":"boolean","required":true},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "Profile": {
+        "dataType": "refObject",
+        "properties": {
+            "locale": {"dataType":"string","required":true},
+            "timezone": {"dataType":"string","required":true},
+            "endpoint": {"dataType":"string","required":true},
+            "products": {"dataType":"array","array":{"dataType":"refObject","ref":"ProductType"},"required":true},
+            "trip": {"dataType":"boolean"},
+            "radar": {"dataType":"boolean"},
+            "refreshJourney": {"dataType":"boolean"},
+            "journeysFromTrip": {"dataType":"boolean"},
+            "reachableFrom": {"dataType":"boolean"},
+            "journeysWalkingSpeed": {"dataType":"boolean"},
+            "tripsByName": {"dataType":"boolean"},
+            "remarks": {"dataType":"boolean"},
+            "remarksGetPolyline": {"dataType":"boolean"},
+            "lines": {"dataType":"boolean"},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "ProfileId": {
+        "dataType": "refAlias",
+        "type": {"dataType":"union","subSchemas":[{"dataType":"enum","enums":["db"]},{"dataType":"enum","enums":["bvg"]},{"dataType":"enum","enums":["oebb"]}],"validators":{}},
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "Station": {
         "dataType": "refObject",
         "properties": {
@@ -178,7 +217,6 @@ const models: TsoaRoute.Models = {
         "properties": {
             "fromLocation": {"dataType":"union","subSchemas":[{"ref":"Station"},{"ref":"Stop"},{"ref":"Location"}]},
             "toLocation": {"dataType":"union","subSchemas":[{"ref":"Station"},{"ref":"Stop"},{"ref":"Location"}]},
-            "icon": {"dataType":"object"},
             "dir": {"dataType":"double"},
             "icoCrd": {"ref":"IcoCrd"},
         },
@@ -202,7 +240,6 @@ const models: TsoaRoute.Models = {
         "properties": {
             "type": {"dataType":"union","subSchemas":[{"dataType":"enum","enums":["status"]},{"dataType":"enum","enums":["warning"]}],"required":true},
             "id": {"dataType":"string"},
-            "icon": {"dataType":"object"},
             "summary": {"dataType":"string"},
             "text": {"dataType":"string"},
             "category": {"dataType":"union","subSchemas":[{"dataType":"string"},{"dataType":"double"}]},
@@ -480,6 +517,15 @@ const models: TsoaRoute.Models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "LinesWithRealtimeData": {
+        "dataType": "refObject",
+        "properties": {
+            "realtimeDataUpdatedAt": {"dataType":"double"},
+            "lines": {"dataType":"array","array":{"dataType":"refObject","ref":"Line"}},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "Duration": {
         "dataType": "refObject",
         "properties": {
@@ -512,6 +558,15 @@ const models: TsoaRoute.Models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "Radar": {
+        "dataType": "refObject",
+        "properties": {
+            "realtimeDataUpdatedAt": {"dataType":"double"},
+            "movements": {"dataType":"array","array":{"dataType":"refObject","ref":"Movement"}},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 };
 const validationService = new ValidationService(models);
 
@@ -522,12 +577,38 @@ export function RegisterRoutes(app: express.Router) {
     //  NOTE: If you do not see routes for all of your controllers in this file, then you might not have informed tsoa of where to look
     //      Please look into the "controllerPathGlobs" config option described in the readme: https://github.com/lukeautry/tsoa
     // ###########################################################################################################
-        app.get('/hafas/journeys',
+        app.get('/hafas/:profileId/profile',
+            ...(fetchMiddlewares<RequestHandler>(HafasController)),
+            ...(fetchMiddlewares<RequestHandler>(HafasController.prototype.getProducts)),
+
+            function HafasController_getProducts(request: any, response: any, next: any) {
+            const args = {
+                    profileId: {"in":"path","name":"profileId","required":true,"ref":"ProfileId"},
+            };
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = getValidatedArgs(args, request, response);
+
+                const controller = new HafasController();
+
+
+              const promise = controller.getProducts.apply(controller, validatedArgs as any);
+              promiseHandler(controller, promise, response, undefined, next);
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        app.get('/hafas/:profileId/journeys',
             ...(fetchMiddlewares<RequestHandler>(HafasController)),
             ...(fetchMiddlewares<RequestHandler>(HafasController.prototype.getjourneys)),
 
             function HafasController_getjourneys(request: any, response: any, next: any) {
             const args = {
+                    profileId: {"in":"path","name":"profileId","required":true,"ref":"ProfileId"},
                     from: {"in":"query","name":"from","required":true,"dataType":"string"},
                     to: {"in":"query","name":"to","required":true,"dataType":"string"},
                     departure: {"in":"query","name":"departure","dataType":"any"},
@@ -536,7 +617,7 @@ export function RegisterRoutes(app: express.Router) {
                     stopovers: {"default":false,"in":"query","name":"stopovers","dataType":"boolean"},
                     transfers: {"default":10,"in":"query","name":"transfers","dataType":"double"},
                     transferTime: {"default":10,"in":"query","name":"transferTime","dataType":"double"},
-                    accessibility: {"default":"none","in":"query","name":"accessibility","dataType":"string"},
+                    accessibility: {"in":"query","name":"accessibility","dataType":"any"},
                     bike: {"default":false,"in":"query","name":"bike","dataType":"boolean"},
                     tickets: {"default":false,"in":"query","name":"tickets","dataType":"boolean"},
                     polylines: {"default":false,"in":"query","name":"polylines","dataType":"boolean"},
@@ -565,18 +646,20 @@ export function RegisterRoutes(app: express.Router) {
             }
         });
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-        app.get('/hafas/trip',
+        app.get('/hafas/:profileId/trip',
             ...(fetchMiddlewares<RequestHandler>(HafasController)),
             ...(fetchMiddlewares<RequestHandler>(HafasController.prototype.gettrip)),
 
             function HafasController_gettrip(request: any, response: any, next: any) {
             const args = {
+                    profileId: {"in":"path","name":"profileId","required":true,"ref":"ProfileId"},
                     id: {"in":"query","name":"id","required":true,"dataType":"string"},
                     stopovers: {"default":true,"in":"query","name":"stopovers","dataType":"boolean"},
                     polyline: {"default":false,"in":"query","name":"polyline","dataType":"boolean"},
                     subStops: {"default":true,"in":"query","name":"subStops","dataType":"boolean"},
                     entrances: {"default":true,"in":"query","name":"entrances","dataType":"boolean"},
                     remarks: {"default":true,"in":"query","name":"remarks","dataType":"boolean"},
+                    scheduledDays: {"default":false,"in":"query","name":"scheduledDays","dataType":"boolean"},
                     language: {"default":"en","in":"query","name":"language","dataType":"string"},
             };
 
@@ -596,23 +679,24 @@ export function RegisterRoutes(app: express.Router) {
             }
         });
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-        app.get('/hafas/departures',
+        app.get('/hafas/:profileId/departures',
             ...(fetchMiddlewares<RequestHandler>(HafasController)),
             ...(fetchMiddlewares<RequestHandler>(HafasController.prototype.getdepartures)),
 
             function HafasController_getdepartures(request: any, response: any, next: any) {
             const args = {
+                    profileId: {"in":"path","name":"profileId","required":true,"ref":"ProfileId"},
                     station: {"in":"query","name":"station","required":true,"dataType":"string"},
                     when: {"in":"query","name":"when","dataType":"any"},
                     direction: {"in":"query","name":"direction","dataType":"any"},
+                    line: {"in":"query","name":"line","dataType":"any"},
                     duration: {"default":120,"in":"query","name":"duration","dataType":"double"},
                     results: {"default":10,"in":"query","name":"results","dataType":"double"},
                     subStops: {"default":true,"in":"query","name":"subStops","dataType":"boolean"},
                     entrances: {"default":true,"in":"query","name":"entrances","dataType":"boolean"},
                     linesOfStops: {"default":false,"in":"query","name":"linesOfStops","dataType":"boolean"},
                     remarks: {"default":false,"in":"query","name":"remarks","dataType":"boolean"},
-                    stopovers: {"default":false,"in":"query","name":"stopovers","dataType":"boolean"},
-                    includeRelatedStations: {"default":false,"in":"query","name":"includeRelatedStations","dataType":"boolean"},
+                    products: {"in":"query","name":"products","dataType":"any"},
                     language: {"default":"en","in":"query","name":"language","dataType":"string"},
             };
 
@@ -632,12 +716,13 @@ export function RegisterRoutes(app: express.Router) {
             }
         });
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-        app.get('/hafas/locations',
+        app.get('/hafas/:profileId/locations',
             ...(fetchMiddlewares<RequestHandler>(HafasController)),
             ...(fetchMiddlewares<RequestHandler>(HafasController.prototype.getlocations)),
 
             function HafasController_getlocations(request: any, response: any, next: any) {
             const args = {
+                    profileId: {"in":"path","name":"profileId","required":true,"ref":"ProfileId"},
                     name: {"in":"query","name":"name","required":true,"dataType":"string"},
                     fuzzy: {"default":true,"in":"query","name":"fuzzy","dataType":"boolean"},
                     results: {"default":10,"in":"query","name":"results","dataType":"double"},
@@ -666,12 +751,13 @@ export function RegisterRoutes(app: express.Router) {
             }
         });
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-        app.get('/hafas/stop',
+        app.get('/hafas/:profileId/stop',
             ...(fetchMiddlewares<RequestHandler>(HafasController)),
             ...(fetchMiddlewares<RequestHandler>(HafasController.prototype.getstop)),
 
             function HafasController_getstop(request: any, response: any, next: any) {
             const args = {
+                    profileId: {"in":"path","name":"profileId","required":true,"ref":"ProfileId"},
                     id: {"in":"query","name":"id","required":true,"dataType":"string"},
                     linesOfStops: {"default":false,"in":"query","name":"linesOfStops","dataType":"boolean"},
                     subStops: {"default":true,"in":"query","name":"subStops","dataType":"boolean"},
@@ -696,18 +782,47 @@ export function RegisterRoutes(app: express.Router) {
             }
         });
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-        app.get('/hafas/nearby',
+        app.get('/hafas/:profileId/lines',
+            ...(fetchMiddlewares<RequestHandler>(HafasController)),
+            ...(fetchMiddlewares<RequestHandler>(HafasController.prototype.getlines)),
+
+            function HafasController_getlines(request: any, response: any, next: any) {
+            const args = {
+                    profileId: {"in":"path","name":"profileId","required":true,"ref":"ProfileId"},
+                    query: {"in":"query","name":"query","required":true,"dataType":"string"},
+                    language: {"default":"en","in":"query","name":"language","dataType":"string"},
+            };
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = getValidatedArgs(args, request, response);
+
+                const controller = new HafasController();
+
+
+              const promise = controller.getlines.apply(controller, validatedArgs as any);
+              promiseHandler(controller, promise, response, undefined, next);
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        app.get('/hafas/:profileId/nearby',
             ...(fetchMiddlewares<RequestHandler>(HafasController)),
             ...(fetchMiddlewares<RequestHandler>(HafasController.prototype.getnearby)),
 
             function HafasController_getnearby(request: any, response: any, next: any) {
             const args = {
+                    profileId: {"in":"path","name":"profileId","required":true,"ref":"ProfileId"},
                     longitude: {"in":"query","name":"longitude","required":true,"dataType":"double"},
                     latitude: {"in":"query","name":"latitude","required":true,"dataType":"double"},
                     results: {"default":8,"in":"query","name":"results","dataType":"double"},
                     distance: {"in":"query","name":"distance","dataType":"any"},
                     poi: {"default":false,"in":"query","name":"poi","dataType":"boolean"},
                     stops: {"default":true,"in":"query","name":"stops","dataType":"boolean"},
+                    products: {"in":"query","name":"products","dataType":"any"},
                     subStops: {"default":true,"in":"query","name":"subStops","dataType":"boolean"},
                     entrances: {"default":true,"in":"query","name":"entrances","dataType":"boolean"},
                     linesOfStops: {"default":false,"in":"query","name":"linesOfStops","dataType":"boolean"},
@@ -730,12 +845,13 @@ export function RegisterRoutes(app: express.Router) {
             }
         });
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-        app.get('/hafas/reachableFrom',
+        app.get('/hafas/:profileId/reachableFrom',
             ...(fetchMiddlewares<RequestHandler>(HafasController)),
             ...(fetchMiddlewares<RequestHandler>(HafasController.prototype.getreachableFrom)),
 
             function HafasController_getreachableFrom(request: any, response: any, next: any) {
             const args = {
+                    profileId: {"in":"path","name":"profileId","required":true,"ref":"ProfileId"},
                     address: {"in":"query","name":"address","required":true,"dataType":"string"},
                     longitude: {"in":"query","name":"longitude","required":true,"dataType":"double"},
                     latitude: {"in":"query","name":"latitude","required":true,"dataType":"double"},
@@ -744,6 +860,7 @@ export function RegisterRoutes(app: express.Router) {
                     maxDuration: {"default":20,"in":"query","name":"maxDuration","dataType":"double"},
                     subStops: {"default":true,"in":"query","name":"subStops","dataType":"boolean"},
                     entrances: {"default":true,"in":"query","name":"entrances","dataType":"boolean"},
+                    polylines: {"default":false,"in":"query","name":"polylines","dataType":"boolean"},
             };
 
             // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
@@ -762,12 +879,13 @@ export function RegisterRoutes(app: express.Router) {
             }
         });
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-        app.get('/hafas/radar',
+        app.get('/hafas/:profileId/radar',
             ...(fetchMiddlewares<RequestHandler>(HafasController)),
             ...(fetchMiddlewares<RequestHandler>(HafasController.prototype.getradar)),
 
             function HafasController_getradar(request: any, response: any, next: any) {
             const args = {
+                    profileId: {"in":"path","name":"profileId","required":true,"ref":"ProfileId"},
                     north: {"in":"query","name":"north","required":true,"dataType":"double"},
                     west: {"in":"query","name":"west","required":true,"dataType":"double"},
                     south: {"in":"query","name":"south","required":true,"dataType":"double"},
